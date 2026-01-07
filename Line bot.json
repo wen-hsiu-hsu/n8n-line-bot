@@ -7,13 +7,13 @@
         "path": "6ffc18b9-7e3e-464a-9572-f35473e52d4d",
         "options": {}
       },
-      "id": "d20822b7-c6e4-4107-977b-ae6e995da947",
+      "id": "c8fa10cc-9b1a-4988-b0b9-bddcc672d6a7",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        160,
-        240
+        4464,
+        2528
       ],
       "webhookId": "6ffc18b9-7e3e-464a-9572-f35473e52d4d"
     },
@@ -41,13 +41,13 @@
         },
         "options": {}
       },
-      "id": "2b7d53bd-d30c-4cbb-a5c1-4980865024d4",
+      "id": "b75610a7-a939-4e84-a073-2dad74adb05e",
       "name": "active",
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
       "position": [
-        528,
-        240
+        4832,
+        2528
       ]
     },
     {
@@ -65,13 +65,13 @@
         "filterJson": "={\n  \"property\":\"結清\",\n  \"formula\":{\n    \"checkbox\": {\n      \"equals\": false\n    }\n  }\n}",
         "options": {}
       },
-      "id": "52a112f5-b0ad-4a09-a876-4e6c504532ca",
+      "id": "4700561e-84d6-4ed1-9007-501bf2ed7870",
       "name": "未繳費名單",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        1952,
-        -880
+        6256,
+        1408
       ],
       "credentials": {
         "notionApi": {
@@ -105,13 +105,13 @@
         },
         "options": {}
       },
-      "id": "830a1036-4fda-46dd-a2af-611a41978866",
+      "id": "84914e94-1b5c-451e-8e5a-51c704e93988",
       "name": "reply",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3568,
-        368
+        7872,
+        2656
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -124,13 +124,13 @@
       "parameters": {
         "jsCode": "const prevNodeName = $prevNode.name\n\nconst peopleName = $(prevNodeName).all().map(item => item.json.name)\n\nconst quoteToken = $('Split Out').all().map(item => item.json.message.quoteToken)[0]\n\nconst nextSaturdayQuarter = $('metadata1').first().json.nextSaturdayQuarter\n\nreturn [\n  {\n    \"type\":\"textV2\",\n    \"text\":`${nextSaturdayQuarter}\\n💀 尚未繳費： ${peopleName.join(', ')}`,\n    \"quoteToken\": quoteToken,\n  }\n]"
       },
-      "id": "484622e7-ab75-4f9d-8915-315f453d22a3",
+      "id": "58aa2a3b-dfde-49b8-bb14-083232ba31b6",
       "name": "未繳費 message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2608,
-        -880
+        6912,
+        1408
       ]
     },
     {
@@ -138,26 +138,26 @@
         "fieldToSplitOut": "body.events",
         "options": {}
       },
-      "id": "bbc3517d-8159-416b-84c1-3015ad25c919",
+      "id": "966d10ef-59b4-4430-ad33-ca1cf01494b7",
       "name": "Split Out",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        352,
-        240
+        4656,
+        2528
       ]
     },
     {
       "parameters": {
         "jsCode": "const prevNodeName = $prevNode.name\n\nconst messages = $(prevNodeName).all().map(item => item.json)\n\nconst replyToken = $('active').all()[$runIndex].json.replyToken\n\nreturn {\n  messages,\n  replyToken\n}"
       },
-      "id": "59e8b2a3-9109-4c81-902d-5b986f02049a",
+      "id": "a7fc07b4-776b-4c27-aed5-72bf393b3eda",
       "name": "組起來",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2784,
-        368
+        7088,
+        2656
       ]
     },
     {
@@ -184,13 +184,13 @@
         },
         "options": {}
       },
-      "id": "87c93a5f-1d02-4051-8b26-cac8adfea3de",
+      "id": "0ddb4ecd-0904-49c2-997f-a5c26e111fba",
       "name": "取得該季資訊",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        1968,
-        368
+        6160,
+        2656
       ],
       "credentials": {
         "notionApi": {
@@ -201,29 +201,16 @@
     },
     {
       "parameters": {
-        "jsCode": "const nextSaturday = $('metadata').first().json.nextSaturdayDateText\n\nconst prevNodeName = $prevNode.name\nconst peopleCount = Number($(prevNodeName).all().map(item => item.json.properties['報名人數'].formula.number))\n\nconst price = Number($(prevNodeName).all().map(item => item.json.properties['零打費用'].number))\n\nconst offCounts = Number($('metadata').first().json.offCounts)\nconst courts = Number($('metadata').first().json.courts)\n\nconst availableCounts = courts * 7 - peopleCount + offCounts\n\nfunction generateNumberedListString(number) {\n  const lines = [];\n  for (let i = 1; i <= number; i++) {\n    lines.push(`${i}.`);\n  }\n  return lines.join('\\n');\n}\n\nreturn [\n  {\n    \"type\":\"textV2\",\n    \"text\":[\n      `${nextSaturday} 不能到請喊聲`,\n      `請假：${offCounts} 人`,\n      `場地：${courts} 面`,\n      `應到：${peopleCount - offCounts} 人`,\n      `零打名額：${availableCounts}人 $${price}/人`\n    ].join('\\n')\n  },\n  {\n    \"type\":\"textV2\",\n    \"text\":[\n      `${nextSaturday}`,\n      `零打名額 ${availableCounts} 人 | $${price}/人`, \n      `${generateNumberedListString(availableCounts)}`\n    ].join('\\n')\n  }\n]"
-      },
-      "id": "f765e888-9bf8-4f07-baf3-f5d762e45cae",
-      "name": "下次打球",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2192,
-        368
-      ]
-    },
-    {
-      "parameters": {
         "mode": "runOnceForEachItem",
         "jsCode": "function parseQueryStringManualNoInnerReturn(commandString) {\n  const queryIndex = commandString.indexOf('?');\n\n  // 第一層 return：處理沒有 '?' 或 '?' 在結尾的情況\n  if (queryIndex === -1 || queryIndex === commandString.length - 1) {\n    return {};\n  }\n\n  const queryString = commandString.substring(queryIndex + 1);\n\n  // 第一層 return：處理 '?' 後面沒有內容的情況\n  if (!queryString) {\n    return {};\n  }\n\n  const params = {}; // 初始化結果物件\n  const pairs = queryString.split('&');\n\n  // 使用 forEach 遍歷\n  pairs.forEach(pair => {\n    // *** 修改點：將原本的 return 改成 if 判斷 ***\n    // 只有當 pair 不是空字串時，才執行後續的解析邏輯\n    if (pair) {\n      let key = pair;\n      let value = '';\n      const eqIndex = pair.indexOf('=');\n\n      if (eqIndex !== -1) {\n        key = pair.substring(0, eqIndex);\n        value = pair.substring(eqIndex + 1);\n      }\n\n      try {\n        const decodedKey = decodeURIComponent(key.replace(/\\+/g, ' '));\n        const decodedValue = decodeURIComponent(value.replace(/\\+/g, ' '));\n        params[decodedKey] = decodedValue;\n      } catch (e) {\n        console.warn(`Failed to decode pair: \"${pair}\". Key: \"${key}\", Value: \"${value}\"`, e);\n        params[key.replace(/\\+/g, ' ')] = value.replace(/\\+/g, ' ');\n      }\n      // *** 原本在這裡的隱式結束（或之前的 return）現在是 if 塊的結束 ***\n    }\n    // *** 如果 pair 是空字串，則這個 forEach 迭代什麼都不做 ***\n  });\n\n  // 第一層 return：回傳最終的結果物件\n  return params;\n}\n\nfunction getNextSaturday () {\n  const now = DateTime.now(); \n  const currentWeekday = now.weekday; \n  const daysUntilSaturday = ((6 - currentWeekday + 7) % 7) || 7; \n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter; \n  return `${year}-Q${quarter}`; \n}\n\nfunction getNextSaturdayDateText () {\n  const nextSaturday = getNextSaturday()\n  return nextSaturday.toFormat('yyyy-MM-dd')\n}\n\n// function getQueryFromCommand(command) {\n//   const queryIndex = command.indexOf('?');\n//   if (queryIndex === -1 || queryIndex === command.length - 1) {\n//     return {}; \n//   }\n\n//   const queryString = command.substring(queryIndex + 1);\n//   const searchParams = parseQueryStringManualNoInnerReturn(queryString); \n//   const queryParams = Object.fromEntries(searchParams.entries()); \n//   return queryParams;\n// }\n\nconst DEFAULT_OFF_COUNTS = 0\nconst DEFAULT_COURT = 2\nconst DEFAULT_PRICE = 170\n\nconst query = parseQueryStringManualNoInnerReturn($json.message.text)\n\nreturn {\n  nextSaturdayQuarter: getNextSaturdayQuarter(),\n  nextSaturdayDateText: getNextSaturdayDateText(),\n  offCounts: query?.['-'] ?? DEFAULT_OFF_COUNTS,\n  courts: query?.['c'] ?? DEFAULT_COURT,\n  price: DEFAULT_PRICE\n}"
       },
-      "id": "89533ecf-3e19-473c-9b65-dc27ae98d0b6",
+      "id": "30220d29-187d-44e7-8f76-dee2e005b562",
       "name": "metadata",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1744,
-        368
+        5952,
+        2656
       ]
     },
     {
@@ -251,13 +238,13 @@
         },
         "options": {}
       },
-      "id": "2d8b2994-7fd6-49a9-ac6b-72281ad8fe8f",
+      "id": "29d1a28e-7d87-4e38-b6d6-ccb0213f289b",
       "name": "if this user is manager",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1072,
-        160
+        5376,
+        2448
       ]
     },
     {
@@ -292,13 +279,13 @@
         },
         "options": {}
       },
-      "id": "22f5c323-3bf0-4682-98da-ff86d3041b55",
+      "id": "51dd3b3b-c8a1-4067-8877-5cb58843152c",
       "name": "Manager rules",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        1360,
-        368
+        5664,
+        2656
       ]
     },
     {
@@ -306,13 +293,13 @@
         "mode": "runOnceForEachItem",
         "jsCode": "function getNextSaturday () {\n  const now = DateTime.now(); \n  const currentWeekday = now.weekday; \n  const daysUntilSaturday = ((6 - currentWeekday + 7) % 7) || 7; \n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter; \n  return `${year}-Q${quarter}`; \n}\n\nfunction getNextSaturdayDateText () {\n  const nextSaturday = getNextSaturday()\n  return nextSaturday.toFormat('yyyy-MM-dd')\n}\n\nreturn {\n  nextSaturdayQuarter: getNextSaturdayQuarter(),\n  nextSaturdayDateText: getNextSaturdayDateText(),\n}"
       },
-      "id": "300f8454-20e7-4de4-afd0-5f935dc07a64",
+      "id": "3b151c21-2e51-49dc-b061-b87bd1d3dbe3",
       "name": "metadata1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1728,
-        -880
+        6032,
+        1408
       ]
     },
     {
@@ -348,13 +335,13 @@
         },
         "options": {}
       },
-      "id": "19a5d5c1-04a2-471c-8188-4b52dd0a565a",
+      "id": "b6814eaa-a734-4e14-b869-80de8abf4db9",
       "name": "is command",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        704,
-        240
+        5008,
+        2528
       ]
     },
     {
@@ -415,42 +402,80 @@
         },
         "options": {}
       },
-      "id": "b94cb158-fee7-4619-8fe8-85d101d7c674",
+      "id": "162373a1-ea2a-49f1-b157-5b198257d043",
       "name": "Command controller",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        1312,
-        -720
+        5648,
+        1680
       ]
     },
     {
       "parameters": {
         "jsCode": "const quoteToken = $('Split Out').all().map(item => item.json.message.quoteToken)[0]\n\nreturn [\n  {\n    \"type\":\"textV2\",\n    \"text\":[\n      '{!owe} {！欠} : 未繳費名單',\n      '{!command} {！指令} : 指令列表',\n      `請注意中文使用全型`,\n    ].join('\\n'),\n    \"quoteToken\": quoteToken,\n  }\n]"
       },
-      "id": "8b2bc074-d284-4b6e-906c-bbba80245245",
+      "id": "606da712-7451-4ea4-bc4b-cd902d780e8c",
       "name": "指令列表 message1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2528,
-        -704
+        6640,
+        1696
       ]
     },
     {
       "parameters": {
-        "content": "# 資源\n\nBaserow\nhttps://baserow.io/database/207831/table/504913/918000\n\n帳號：kevinshu1995@gmail.com",
-        "height": 180,
-        "width": 440
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "0fd76b77-9f07-4aa3-a3c9-12ba18dbe32e",
+          "mode": "list",
+          "cachedResultName": "行事曆",
+          "cachedResultUrl": "https://www.notion.so/0fd76b779f074aa3a3c912ba18dbe32e"
+        },
+        "simple": false,
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "key": "季度|relation",
+              "condition": "contains",
+              "relationValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
       },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
+      "id": "ec259267-18fa-4087-93fa-fb93765a0287",
+      "name": "取得打球日",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
       "position": [
-        160,
-        -48
+        6416,
+        2656
       ],
-      "id": "2d9f8f6f-f11d-4a1b-9d71-d9c8ef78dbd8",
-      "name": "Sticky Note"
+      "credentials": {
+        "notionApi": {
+          "id": "RRcVukfrFBXC9j01",
+          "name": "Notion account (修 s1027401)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const quarterInfo = $('取得該季資訊').first().json\nconst metadata = $('metadata').first().json\n\n// 從不同來源彙整資訊\nconst quarterData = {\n  fee: quarterInfo.properties['零打費用']?.number ?? metadata.price,\n  memberCount: quarterInfo.properties['報名人數']?.formula?.number ?? 0,\n  defaultCourts: metadata.courts // Fallback to metadata if not in Quarter DB\n}\n\n// 取得當前節點 (Event) 的資料\n// Input 包含該季所有活動，必須過濾出日期符合 \"下週六\" 的那一筆\nconst targetDate = metadata.nextSaturdayDateText\nconst allEvents = $input.all().map(item => item.json)\n\nconst eventPage = allEvents.find(page => {\n  const startTime = page.properties['時間']?.date?.start\n  return startTime && startTime.startsWith(targetDate)\n})\n\nif (!eventPage) {\n  return [\n    {\n      \"type\": \"textV2\",\n      \"text\": `⚠️ 找不到 ${targetDate} 的打球日活動。\\n請確認 Notion 行事曆是否已建立該日期的頁面。`\n    }\n  ]\n}\n\nconst eventData = {\n  type: eventPage.properties['類型']?.select?.name,\n  timeStart: eventPage.properties['時間']?.date?.start,\n  courtOverride: eventPage.properties['場地數']?.number,\n  absenteesCount: eventPage.properties['請假人']?.relation?.length ?? 0\n}\n\n// 1. 檢查是否暫停\nif (eventData.type && eventData.type.includes('暫停')) {\n  return [\n    {\n      \"type\": \"textV2\",\n      \"text\": `📅 ${targetDate}\\n\\n🛑 本週打球暫停 (Suspended)\\n休息是為了走更長遠的路！`\n    }\n  ]\n}\n\n// 2. 計算邏輯\n// 場地數：優先使用 Event Override，否則使用 Quarter Default (or Metadata default)\nconst finalCourts = eventData.courtOverride ?? quarterData.defaultCourts\nconst courtsDensity = 7 // 每面場地 7 人\n\n// 總請假人數：Event 紀錄的請假人 + 指令參數額外扣除的 (metadata.offCounts)\nconst manualOffCounts = Number(metadata.offCounts) || 0\nconst totalAbsentees = eventData.absenteesCount + manualOffCounts\n\n// 應到人數 (季租 - 請假)\nconst expectedMembers = quarterData.memberCount - totalAbsentees\n\n// 零打名額\nconst availableSlots = (finalCourts * courtsDensity) - expectedMembers\n\n// 3. 格式化輸出\nconst dateStr = eventData.timeStart ? eventData.timeStart.split('T')[0] : targetDate\n\nfunction generateNumberedListString(number) {\n  if (number <= 0) return '(無名額)';\n  const lines = [];\n  for (let i = 1; i <= number; i++) {\n    lines.push(`${i}.`);\n  }\n  return lines.join('\\n');\n}\n\nreturn [\n  {\n    \"type\":\"textV2\",\n    \"text\":[\n      `${dateStr} 不能到請喊聲`,\n      `請假：${totalAbsentees} 人 (${eventData.absenteesCount} 登記 + ${manualOffCounts} 手動)`,\n      `場地：${finalCourts} 面`,\n      `應到：${expectedMembers} 人`,\n      `零打名額：${availableSlots}人 $${quarterData.fee}/人`\n    ].join('\\n')\n  },\n  {\n    \"type\":\"textV2\",\n    \"text\":[\n      `${dateStr}`,\n      `零打名額 ${availableSlots} 人 | $${quarterData.fee}/人`, \n      `${generateNumberedListString(availableSlots)}`\n    ].join('\\n')\n  }\n]"
+      },
+      "id": "59c5c84d-9303-4d28-a85a-c479f018bfca",
+      "name": "下次打球 v2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6672,
+        2656
+      ]
     }
   ],
   "pinData": {},
@@ -525,18 +550,7 @@
       "main": [
         [
           {
-            "node": "下次打球",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "下次打球": {
-      "main": [
-        [
-          {
-            "node": "組起來",
+            "node": "取得打球日",
             "type": "main",
             "index": 0
           }
@@ -607,8 +621,7 @@
             "type": "main",
             "index": 0
           }
-        ],
-        []
+        ]
       ]
     },
     "Command controller": {
@@ -639,18 +652,43 @@
           }
         ]
       ]
+    },
+    "取得打球日": {
+      "main": [
+        [
+          {
+            "node": "下次打球 v2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "下次打球 v2": {
+      "main": [
+        [
+          {
+            "node": "組起來",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Taipei",
+    "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "ce12dac2-9316-4945-8934-7b80e5cb0e55",
+  "versionId": "a859f106-6fd7-4060-b986-a2ff1062cc57",
   "meta": {
-    "templateCredsSetupCompleted": true,
     "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
   },
-  "id": "3YfiUqjiSyuNknmO",
+  "id": "z-kTyrtVcRCn1Qs2zypfX",
   "tags": [
     {
       "updatedAt": "2025-04-15T05:32:47.542Z",
