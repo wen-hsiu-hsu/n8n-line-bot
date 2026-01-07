@@ -1,0 +1,674 @@
+{
+  "name": "Line bot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6ffc18b9-7e3e-464a-9572-f35473e52d4d",
+        "options": {}
+      },
+      "id": "d20822b7-c6e4-4107-977b-ae6e995da947",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        160,
+        240
+      ],
+      "webhookId": "6ffc18b9-7e3e-464a-9572-f35473e52d4d"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c52d968e-9ddc-4ccd-b4db-98a7f7aedd45",
+              "leftValue": "={{ $json.mode }}",
+              "rightValue": "active",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2b7d53bd-d30c-4cbb-a5c1-4980865024d4",
+      "name": "active",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "252f388d-4ac7-49a4-82ae-a7f18044f701",
+          "mode": "list",
+          "cachedResultName": "人員清單",
+          "cachedResultUrl": "https://www.notion.so/252f388d4ac749a482aea7f18044f701"
+        },
+        "filterType": "json",
+        "filterJson": "={\n  \"property\":\"結清\",\n  \"formula\":{\n    \"checkbox\": {\n      \"equals\": false\n    }\n  }\n}",
+        "options": {}
+      },
+      "id": "52a112f5-b0ad-4a09-a876-4e6c504532ca",
+      "name": "未繳費名單",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1952,
+        -880
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "RRcVukfrFBXC9j01",
+          "name": "Notion account (修 s1027401)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "replyToken",
+              "value": "={{ $json.replyToken }}"
+            },
+            {
+              "name": "messages",
+              "value": "={{ $json.messages }}"
+            },
+            {
+              "name": "notificationDisabled",
+              "value": "={{ true }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "830a1036-4fda-46dd-a2af-611a41978866",
+      "name": "reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3568,
+        368
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EeeK58MFzM1kWVEe",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prevNodeName = $prevNode.name\n\nconst peopleName = $(prevNodeName).all().map(item => item.json.name)\n\nconst quoteToken = $('Split Out').all().map(item => item.json.message.quoteToken)[0]\n\nconst nextSaturdayQuarter = $('metadata1').first().json.nextSaturdayQuarter\n\nreturn [\n  {\n    \"type\":\"textV2\",\n    \"text\":`${nextSaturdayQuarter}\\n💀 尚未繳費： ${peopleName.join(', ')}`,\n    \"quoteToken\": quoteToken,\n  }\n]"
+      },
+      "id": "484622e7-ab75-4f9d-8915-315f453d22a3",
+      "name": "未繳費 message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2608,
+        -880
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.events",
+        "options": {}
+      },
+      "id": "bbc3517d-8159-416b-84c1-3015ad25c919",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        352,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const prevNodeName = $prevNode.name\n\nconst messages = $(prevNodeName).all().map(item => item.json)\n\nconst replyToken = $('active').all()[$runIndex].json.replyToken\n\nreturn {\n  messages,\n  replyToken\n}"
+      },
+      "id": "59e8b2a3-9109-4c81-902d-5b986f02049a",
+      "name": "組起來",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2784,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "7deede34-579d-4c77-b79b-20b9f4f000e7",
+          "mode": "list",
+          "cachedResultName": "季租承租紀錄",
+          "cachedResultUrl": "https://www.notion.so/7deede34579d4c77b79b20b9f4f000e7"
+        },
+        "simple": false,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "季租時段|title",
+              "condition": "equals",
+              "titleValue": "={{ $json.nextSaturdayQuarter }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "87c93a5f-1d02-4051-8b26-cac8adfea3de",
+      "name": "取得該季資訊",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1968,
+        368
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "RRcVukfrFBXC9j01",
+          "name": "Notion account (修 s1027401)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const nextSaturday = $('metadata').first().json.nextSaturdayDateText\n\nconst prevNodeName = $prevNode.name\nconst peopleCount = Number($(prevNodeName).all().map(item => item.json.properties['報名人數'].formula.number))\n\nconst price = Number($(prevNodeName).all().map(item => item.json.properties['零打費用'].number))\n\nconst offCounts = Number($('metadata').first().json.offCounts)\nconst courts = Number($('metadata').first().json.courts)\n\nconst availableCounts = courts * 7 - peopleCount + offCounts\n\nfunction generateNumberedListString(number) {\n  const lines = [];\n  for (let i = 1; i <= number; i++) {\n    lines.push(`${i}.`);\n  }\n  return lines.join('\\n');\n}\n\nreturn [\n  {\n    \"type\":\"textV2\",\n    \"text\":[\n      `${nextSaturday} 不能到請喊聲`,\n      `請假：${offCounts} 人`,\n      `場地：${courts} 面`,\n      `應到：${peopleCount - offCounts} 人`,\n      `零打名額：${availableCounts}人 $${price}/人`\n    ].join('\\n')\n  },\n  {\n    \"type\":\"textV2\",\n    \"text\":[\n      `${nextSaturday}`,\n      `零打名額 ${availableCounts} 人 | $${price}/人`, \n      `${generateNumberedListString(availableCounts)}`\n    ].join('\\n')\n  }\n]"
+      },
+      "id": "f765e888-9bf8-4f07-baf3-f5d762e45cae",
+      "name": "下次打球",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2192,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "function parseQueryStringManualNoInnerReturn(commandString) {\n  const queryIndex = commandString.indexOf('?');\n\n  // 第一層 return：處理沒有 '?' 或 '?' 在結尾的情況\n  if (queryIndex === -1 || queryIndex === commandString.length - 1) {\n    return {};\n  }\n\n  const queryString = commandString.substring(queryIndex + 1);\n\n  // 第一層 return：處理 '?' 後面沒有內容的情況\n  if (!queryString) {\n    return {};\n  }\n\n  const params = {}; // 初始化結果物件\n  const pairs = queryString.split('&');\n\n  // 使用 forEach 遍歷\n  pairs.forEach(pair => {\n    // *** 修改點：將原本的 return 改成 if 判斷 ***\n    // 只有當 pair 不是空字串時，才執行後續的解析邏輯\n    if (pair) {\n      let key = pair;\n      let value = '';\n      const eqIndex = pair.indexOf('=');\n\n      if (eqIndex !== -1) {\n        key = pair.substring(0, eqIndex);\n        value = pair.substring(eqIndex + 1);\n      }\n\n      try {\n        const decodedKey = decodeURIComponent(key.replace(/\\+/g, ' '));\n        const decodedValue = decodeURIComponent(value.replace(/\\+/g, ' '));\n        params[decodedKey] = decodedValue;\n      } catch (e) {\n        console.warn(`Failed to decode pair: \"${pair}\". Key: \"${key}\", Value: \"${value}\"`, e);\n        params[key.replace(/\\+/g, ' ')] = value.replace(/\\+/g, ' ');\n      }\n      // *** 原本在這裡的隱式結束（或之前的 return）現在是 if 塊的結束 ***\n    }\n    // *** 如果 pair 是空字串，則這個 forEach 迭代什麼都不做 ***\n  });\n\n  // 第一層 return：回傳最終的結果物件\n  return params;\n}\n\nfunction getNextSaturday () {\n  const now = DateTime.now(); \n  const currentWeekday = now.weekday; \n  const daysUntilSaturday = ((6 - currentWeekday + 7) % 7) || 7; \n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter; \n  return `${year}-Q${quarter}`; \n}\n\nfunction getNextSaturdayDateText () {\n  const nextSaturday = getNextSaturday()\n  return nextSaturday.toFormat('yyyy-MM-dd')\n}\n\n// function getQueryFromCommand(command) {\n//   const queryIndex = command.indexOf('?');\n//   if (queryIndex === -1 || queryIndex === command.length - 1) {\n//     return {}; \n//   }\n\n//   const queryString = command.substring(queryIndex + 1);\n//   const searchParams = parseQueryStringManualNoInnerReturn(queryString); \n//   const queryParams = Object.fromEntries(searchParams.entries()); \n//   return queryParams;\n// }\n\nconst DEFAULT_OFF_COUNTS = 0\nconst DEFAULT_COURT = 2\nconst DEFAULT_PRICE = 170\n\nconst query = parseQueryStringManualNoInnerReturn($json.message.text)\n\nreturn {\n  nextSaturdayQuarter: getNextSaturdayQuarter(),\n  nextSaturdayDateText: getNextSaturdayDateText(),\n  offCounts: query?.['-'] ?? DEFAULT_OFF_COUNTS,\n  courts: query?.['c'] ?? DEFAULT_COURT,\n  price: DEFAULT_PRICE\n}"
+      },
+      "id": "89533ecf-3e19-473c-9b65-dc27ae98d0b6",
+      "name": "metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1744,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dc929aeb-b84a-4007-9838-9c3f91500ff3",
+              "leftValue": "={{ $json.source.userId }}",
+              "rightValue": "U2a0a2c5054c4fa12b78a1d059411e39c",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2d8b2994-7fd6-49a9-ac6b-72281ad8fe8f",
+      "name": "if this user is manager",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1072,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "18fbd263-5f9a-42f8-9d26-e4fe973b4135",
+                    "leftValue": "={{ $('active').item.json.message.text }}",
+                    "rightValue": "=!next",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "下一次的通知"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "22f5c323-3bf0-4682-98da-ff86d3041b55",
+      "name": "Manager rules",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1360,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "function getNextSaturday () {\n  const now = DateTime.now(); \n  const currentWeekday = now.weekday; \n  const daysUntilSaturday = ((6 - currentWeekday + 7) % 7) || 7; \n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter; \n  return `${year}-Q${quarter}`; \n}\n\nfunction getNextSaturdayDateText () {\n  const nextSaturday = getNextSaturday()\n  return nextSaturday.toFormat('yyyy-MM-dd')\n}\n\nreturn {\n  nextSaturdayQuarter: getNextSaturdayQuarter(),\n  nextSaturdayDateText: getNextSaturdayDateText(),\n}"
+      },
+      "id": "300f8454-20e7-4de4-afd0-5f935dc07a64",
+      "name": "metadata1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        -880
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "32110570-2baa-4dcf-b097-8d42114fa839",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "!",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            },
+            {
+              "id": "beae70d8-4b6e-4a35-bc7c-0b6bc404f2fe",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "！",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "19a5d5c1-04a2-471c-8188-4b52dd0a565a",
+      "name": "is command",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ [\"！欠\", \"!owe\"] }}",
+                    "rightValue": "={{ $('active').item.json.message.text }}",
+                    "operator": {
+                      "type": "array",
+                      "operation": "contains",
+                      "rightType": "any"
+                    },
+                    "id": "5262e45f-c423-4422-bbab-a582c41e003b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "未繳費名單"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "59f498ff-7248-4bc5-ae95-c79839c4d9c5",
+                    "leftValue": "={{ [\"!command\", \"！指令\"] }}",
+                    "rightValue": "={{ $('active').item.json.message.text }}",
+                    "operator": {
+                      "type": "array",
+                      "operation": "contains",
+                      "rightType": "any"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "指令列表"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b94cb158-fee7-4619-8fe8-85d101d7c674",
+      "name": "Command controller",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1312,
+        -720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const quoteToken = $('Split Out').all().map(item => item.json.message.quoteToken)[0]\n\nreturn [\n  {\n    \"type\":\"textV2\",\n    \"text\":[\n      '{!owe} {！欠} : 未繳費名單',\n      '{!command} {！指令} : 指令列表',\n      `請注意中文使用全型`,\n    ].join('\\n'),\n    \"quoteToken\": quoteToken,\n  }\n]"
+      },
+      "id": "8b2bc074-d284-4b6e-906c-bbba80245245",
+      "name": "指令列表 message1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2528,
+        -704
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# 資源\n\nBaserow\nhttps://baserow.io/database/207831/table/504913/918000\n\n帳號：kevinshu1995@gmail.com",
+        "height": 180,
+        "width": 440
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -48
+      ],
+      "id": "2d9f8f6f-f11d-4a1b-9d71-d9c8ef78dbd8",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "active": {
+      "main": [
+        [
+          {
+            "node": "is command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "未繳費名單": {
+      "main": [
+        [
+          {
+            "node": "未繳費 message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "未繳費 message": {
+      "main": [
+        [
+          {
+            "node": "組起來",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "active",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "組起來": {
+      "main": [
+        [
+          {
+            "node": "reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "取得該季資訊": {
+      "main": [
+        [
+          {
+            "node": "下次打球",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "下次打球": {
+      "main": [
+        [
+          {
+            "node": "組起來",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "metadata": {
+      "main": [
+        [
+          {
+            "node": "取得該季資訊",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if this user is manager": {
+      "main": [
+        [
+          {
+            "node": "Manager rules",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Command controller",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Command controller",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manager rules": {
+      "main": [
+        [
+          {
+            "node": "metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "metadata1": {
+      "main": [
+        [
+          {
+            "node": "未繳費名單",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is command": {
+      "main": [
+        [
+          {
+            "node": "if this user is manager",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Command controller": {
+      "main": [
+        [
+          {
+            "node": "metadata1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "指令列表 message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "指令列表 message1": {
+      "main": [
+        [
+          {
+            "node": "組起來",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ce12dac2-9316-4945-8934-7b80e5cb0e55",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
+  },
+  "id": "3YfiUqjiSyuNknmO",
+  "tags": [
+    {
+      "updatedAt": "2025-04-15T05:32:47.542Z",
+      "createdAt": "2025-04-15T05:32:47.542Z",
+      "id": "3iuVNHXrJWil5Kxb",
+      "name": "baserow"
+    },
+    {
+      "updatedAt": "2025-04-15T05:32:41.173Z",
+      "createdAt": "2025-04-15T05:32:41.173Z",
+      "id": "aNPgZxmGaxoKb7As",
+      "name": "line"
+    },
+    {
+      "updatedAt": "2025-04-15T04:50:25.893Z",
+      "createdAt": "2025-04-15T04:50:25.893Z",
+      "id": "0i74kYvNo5LJ26IU",
+      "name": "bot"
+    }
+  ]
+}
