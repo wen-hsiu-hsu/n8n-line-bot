@@ -93,3 +93,31 @@ return {
   "text": "{!owe} : 未繳費名單"
 };
 ```
+
+## 4. Notion Node Error: `body failed validation` (Date Filter)
+
+**錯誤訊息**:
+```
+"errorMessage": "Bad request - please check your parameters",
+"errorDescription": "body failed validation. Fix one:\nbody.filter.and[0].date.equals should be a string, instead was `{}`..."
+```
+
+**原因**:
+當在 Notion Node 的 `Filter Type` 設為 `Manual` 時，若針對 Date 欄位使用 Expression (例如 `{{ $json.date }}`)，n8n 在驗證階段可能無法正確解析表達式，導致傳入空物件 `{}` 或 `undefined`，進而觸發參數驗證失敗。
+
+**解決方案**:
+將 `Filter Type` 改為 `JSON`，並手動建構過濾器物件。這樣可以繞過 UI 的預先驗證機制，直接將參數傳遞給 API。
+
+**JSON Filter 範例**:
+```json
+{
+  "and": [
+    {
+      "property": "時間",
+      "date": {
+        "equals": "{{ $json.nextSaturdayDateText }}"
+      }
+    }
+  ]
+}
+```
