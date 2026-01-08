@@ -27,3 +27,69 @@ return DateTime.now();
 // ✅ 直接使用全域 DateTime
 return DateTime.now();
 ```
+
+## 2. Double Escaping of Newlines (`\\n` vs `\n`)
+
+**錯誤現象**:
+Line Bot 回傳的訊息中，出現了直接顯示出來的 `\n` 字元，而不是預期的換行。
+
+**原因**:
+在 n8n JSON 中撰寫 JavaScript Code 時，過度轉義了換行符號。
+例如使用了 `\\n`，這在 JSON 解析後會變成 JavaScript 中的字串 `"\n"` (兩個字元: Backslash + n)，而不是換行符號。
+
+**解決方案**:
+在 JavaScript Code Node 中，字串連接應該使用單一轉義 `\n`，或直接使用 Template Literal 的換行。
+
+**錯誤範例**:
+```javascript
+// ❌ 顯示結果為: Hello\nWorld
+return { text: "Hello\\nWorld" };
+```
+
+**正確範例**:
+```javascript
+// ✅ 顯示結果為換行
+return { text: "Hello\nWorld" };
+
+// ✅ 或者使用 Template Literal
+return { text: `Hello
+World` };
+```
+
+## 3. LINE API 400 Error: `textV2` and `{}` Brackets
+
+**錯誤訊息**:
+```
+"errorMessage": "Bad request - please check your parameters",
+"errorDescription": "A message (messages[0]) in the request body is invalid",
+"details": [
+  {
+    "message": "The key '!owe' enclosed in '{}' does not match the pattern '^[a-zA-Z0-9_]{1,20}$'.",
+    "property": "text"
+  }
+]
+```
+
+**原因**:
+LINE 的 `textV2` 訊息類型會將 `{}` 視為 placeholder (用於 Mention 等功能)。如果 `{}` 內的內容不符合特定格式，API 會報 400 錯誤。
+
+**解決方案**:
+如果不需要 Mention 功能，請改用基本的 `text` 訊息類型。
+
+**錯誤範例**:
+```javascript
+// ❌ 使用 textV2 會導致 LINE 解析 {!owe} 失敗
+return {
+  "type": "textV2",
+  "text": "{!owe} : 未繳費名單"
+};
+```
+
+**正確範例**:
+```javascript
+// ✅ 使用基本的 text 類型即可安全包含任何大括號內容
+return {
+  "type": "text",
+  "text": "{!owe} : 未繳費名單"
+};
+```

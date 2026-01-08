@@ -19,6 +19,10 @@
    - 當修正錯誤後，**必須**主動詢問使用者：「是否要將此錯誤收錄至錯誤記錄？」
    - 經確認後，可依據錯誤類型建立新的錯誤記錄檔（例如 `n8n-errors-network.md`）或收錄至 `n8n-common-errors.md`，以符合 Token 節省原則（避免單一檔案過大）。
 
+5. **知識庫維護 (Knowledge Maintenance)**:
+   - 若在對話中獲得無法從 JSON 代碼直接完整推斷的背景資訊（如資料庫 Schema 定義、特定業務邏輯常數），**必須**將其記錄或更新至 `project-context.md`。
+   - 目的：確保未來 AI 開發者能快速掌握資料結構，無需重新分析 JSON 節點屬性。
+
 ## 編輯與操作建議 (Operational Best Practices)
 
 為了避免錯誤並提升維護性，建議遵守以下流程：
