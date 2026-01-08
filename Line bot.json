@@ -491,7 +491,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const quarterInfo = $('取得該季資訊').first().json\nconst metadata = $('metadata').first().json\n\n// 從不同來源彙整資訊\nconst quarterData = {\n  fee: quarterInfo.properties['零打費用']?.number ?? metadata.price,\n  memberCount: quarterInfo.properties['報名人數']?.formula?.number ?? 0,\n  defaultCourts: metadata.courts // Fallback to metadata if not in Quarter DB\n}\n\n// 取得當前節點 (Event) 的資料\n// Input 包含該季所有活動，必須過濾出日期符合 \"下週六\" 的那一筆\nconst targetDate = metadata.nextSaturdayDateText\nconst allEvents = $input.all().map(item => item.json)\n\nconst eventPage = allEvents.find(page => {\n  const startTime = page.properties['時間']?.date?.start\n  return startTime && startTime.startsWith(targetDate)\n})\n\nif (!eventPage) {\n  return [\n    {\n      \"type\": \"text\",\n      \"text\": `⚠️ 找不到 ${targetDate} 的打球日活動。\\n請確認 Notion 行事曆是否已建立該日期的頁面。`\n    }\n  ]\n}\n\nconst eventData = {\n  type: eventPage.properties['類型']?.select?.name,\n  timeStart: eventPage.properties['時間']?.date?.start,\n  courtOverride: eventPage.properties['場地數']?.number,\n  absenteesCount: eventPage.properties['請假人']?.relation?.length ?? 0\n}\n\n// 1. 檢查是否暫停\nif (eventData.type && eventData.type.includes('暫停')) {\n  return [\n    {\n      \"type\": \"text\",\n      \"text\": `📅 ${targetDate}\\n\\n🛑 本週打球暫停 (Suspended)\\n休息是為了走更長遠的路！`\n    }\n  ]\n}\n\n// 2. 計算邏輯\n// 場地數：優先使用 Event Override，否則使用 Quarter Default (or Metadata default)\nconst finalCourts = eventData.courtOverride ?? quarterData.defaultCourts\nconst courtsDensity = 7 // 每面場地 7 人\n\n// 總請假人數：Event 紀錄的請假人 + 指令參數額外扣除的 (metadata.offCounts)\nconst manualOffCounts = Number(metadata.offCounts) || 0\nconst totalAbsentees = eventData.absenteesCount + manualOffCounts\n\n// 應到人數 (季租 - 請假)\nconst expectedMembers = quarterData.memberCount - totalAbsentees\n\n// 零打名額\nconst availableSlots = (finalCourts * courtsDensity) - expectedMembers\n\n// 3. 格式化輸出\nconst dateStr = eventData.timeStart ? eventData.timeStart.split('T')[0] : targetDate\n\nfunction generateNumberedListString(number) {\n  if (number <= 0) return '(無名額)';\n  const lines = [];\n  for (let i = 1; i <= number; i++) {\n    lines.push(`${i}.`);\n  }\n  return lines.join('\\n');\n}\n\nreturn [\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${dateStr} 不能到請喊聲`,\n      `請假：${totalAbsentees} 人 (${eventData.absenteesCount} 登記 + ${manualOffCounts} 手動)`,\n      `場地：${finalCourts} 面`,\n      `應到：${expectedMembers} 人`,\n      `零打名額：${availableSlots}人 $${quarterData.fee}/人`\n    ].join('\\n')\n  },\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${dateStr}`,\n      `零打名額 ${availableSlots} 人 | $${quarterData.fee}/人`, \n      `${generateNumberedListString(availableSlots)}`\n    ].join('\\n')\n  }\n]"
+        "jsCode": "const quarterInfo = $('取得該季資訊').first().json\nconst metadata = $('metadata').first().json\n\n// 從不同來源彙整資訊\nconst quarterData = {\n  fee: quarterInfo.properties['零打費用']?.number ?? metadata.price,\n  memberCount: quarterInfo.properties['報名人數']?.formula?.number ?? 0,\n  defaultCourts: metadata.courts // Fallback to metadata if not in Quarter DB\n}\n\n// 取得當前節點 (Event) 的資料\n// Input 包含該季所有活動，必須過濾出日期符合 \"下週六\" 的那一筆\nconst targetDate = metadata.nextSaturdayDateText\nconst allEvents = $input.all().map(item => item.json)\n\nconst eventPage = allEvents.find(page => {\n  const startTime = page.properties['時間']?.date?.start\n  return startTime && startTime.startsWith(targetDate)\n})\n\nif (!eventPage) {\n  return [\n    {\n      \"type\": \"text\",\n      \"text\": `⚠️ 找不到 ${targetDate} 的打球日活動。\\n請確認 Notion 行事曆是否已建立該日期的頁面。`\n    }\n  ]\n}\n\nconst eventData = {\n  type: eventPage.properties['類型']?.select?.name,\n  timeStart: eventPage.properties['時間']?.date?.start,\n  courtOverride: eventPage.properties['場地數']?.number,\n  absenteesCount: eventPage.properties['請假人']?.relation?.length ?? 0\n}\n\n// 1. 檢查是否暫停\nif (eventData.type && eventData.type.includes('暫停')) {\n  return [\n    {\n      \"type\": \"text\",\n      \"text\": `📅 ${targetDate}\\n\\n🛑 本週打球暫停 (Suspended)\\n休息是為了走更長遠的路！`\n    }\n  ]\n}\n\n// 2. 計算邏輯\n// 場地數：優先使用 Event Override，否則使用 Quarter Default (or Metadata default)\nconst finalCourts = eventData.courtOverride ?? quarterData.defaultCourts\nconst courtsDensity = 7 // 每面場地 7 人\n\n// 總請假人數：Event 紀錄的請假人 + 指令參數額外扣除的 (metadata.offCounts)\nconst manualOffCounts = Number(metadata.offCounts) || 0\nconst totalAbsentees = eventData.absenteesCount + manualOffCounts\n\n// 應到人數 (季租 - 請假)\nconst expectedMembers = quarterData.memberCount - totalAbsentees\n\n// 零打名額\nconst availableSlots = (finalCourts * courtsDensity) - expectedMembers\n\n// 3. 格式化輸出\nconst dateStr = eventData.timeStart ? eventData.timeStart.split('T')[0] : targetDate\n\nfunction generateNumberedListString(number) {\n  if (number <= 0) return '(無名額)';\n  const lines = [];\n  for (let i = 1; i <= number; i++) {\n    lines.push(`${i}.`);\n  }\n  return lines.join('\\n');\n}\n\nreturn [\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${dateStr} 不能到請喊聲`,\n      `請假：${totalAbsentees} 人`,\n      `場地：${finalCourts} 面`,\n      `應到：${expectedMembers} 人`,\n      `零打名額：${availableSlots}人 $${quarterData.fee}/人`\n    ].join('\\n')\n  },\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${dateStr}`,\n      `零打名額 ${availableSlots} 人 | $${quarterData.fee}/人`, \n      `${generateNumberedListString(availableSlots)}`\n    ].join('\\n')\n  }\n]"
       },
       "id": "77fdbccf-872e-4696-92d0-7dc514c6066b",
       "name": "下次打球 v2",
@@ -857,17 +857,17 @@
     "timezone": "Asia/Taipei",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "57e0d2e4-3a39-4168-a50c-835cc14755ae",
+  "versionId": "3a2bdbc0-ec2b-4d53-a9a4-eb25ab5a17e5",
   "meta": {
     "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
   },
   "id": "z-kTyrtVcRCn1Qs2zypfX",
   "tags": [
     {
-      "updatedAt": "2025-04-15T04:50:25.893Z",
-      "createdAt": "2025-04-15T04:50:25.893Z",
-      "id": "0i74kYvNo5LJ26IU",
-      "name": "bot"
+      "updatedAt": "2025-04-15T05:32:47.542Z",
+      "createdAt": "2025-04-15T05:32:47.542Z",
+      "id": "3iuVNHXrJWil5Kxb",
+      "name": "baserow"
     },
     {
       "updatedAt": "2025-04-15T05:32:41.173Z",
@@ -876,10 +876,10 @@
       "name": "line"
     },
     {
-      "updatedAt": "2025-04-15T05:32:47.542Z",
-      "createdAt": "2025-04-15T05:32:47.542Z",
-      "id": "3iuVNHXrJWil5Kxb",
-      "name": "baserow"
+      "updatedAt": "2025-04-15T04:50:25.893Z",
+      "createdAt": "2025-04-15T04:50:25.893Z",
+      "id": "0i74kYvNo5LJ26IU",
+      "name": "bot"
     }
   ]
 }
