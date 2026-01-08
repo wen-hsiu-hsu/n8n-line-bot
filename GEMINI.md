@@ -5,15 +5,19 @@
 
 ## 核心規則 (Critical Rules)
 
-1. **必讀文件**: 
-   - 在編輯任何 n8n JSON 檔案之前，**必須** 閱讀並參考 `n8n-doc-for-ai.txt`。
-   - 該檔案包含了 n8n 的文件說明與規範，是理解工作流結構的重要依據。
+1. **Token 節省優先 (Token Efficiency)**: 
+   - 為了節省 Token，**不需要**每次都讀取 `n8n-doc-for-ai.txt`。唯有在不確定 JSON 結構或節點參數時，才去閱讀該檔案。
+   - 在撰寫或除錯 Code Node 時，才建議參考 `n8n-common-errors.md`。
 
 2. **預設目標檔案**:
    - 通常沒有明確指定檔案的時候，就代表要改動 `Line bot.json`。
 
 3. **主動詢問 Commit**:
    - 完成後需要主動詢問是否 commit。
+
+4. **錯誤紀錄機制 (Error Documentation)**:
+   - 當修正錯誤後，**必須**主動詢問使用者：「是否要將此錯誤收錄至錯誤記錄？」
+   - 經確認後，可依據錯誤類型建立新的錯誤記錄檔（例如 `n8n-errors-network.md`）或收錄至 `n8n-common-errors.md`，以符合 Token 節省原則（避免單一檔案過大）。
 
 ## 編輯與操作建議 (Operational Best Practices)
 
