@@ -6,7 +6,7 @@
 ## 核心規則 (Critical Rules)
 
 1. **Token 節省優先 (Token Efficiency)**: 
-   - 為了節省 Token，**不需要**每次都讀取 `n8n-doc-for-ai.txt`。唯有在不確定 JSON 結構或節點參數時，才去閱讀該檔案。
+   - 例外：為了確保正確度，**需要**每次都讀取 `n8n-doc-for-ai.txt`。唯有在確定 JSON 結構或節點參數時，才不閱讀該檔案。
    - 在撰寫或除錯 Code Node 時，才建議參考 `n8n-common-errors.md`。
 
 2. **預設目標檔案**:
