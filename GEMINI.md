@@ -1,50 +1,49 @@
-# n8n JSON Workflow Guidelines
+# n8n Project Guidelines
 
-此資料夾專門用於存放與編輯 n8n 的 JSON 工作流檔案 (Workflow JSONs)。
-為了確保 AI 協作的品質與檔案的正確性，請務必遵守以下規範。
+此資料夾包含 n8n Line Bot 的專案文件與工作流。
+為了確保開發效率與 Token 節省，請嚴格遵守以下文件閱讀與維護規範。
 
-## 核心規則 (Critical Rules)
+## 📁 文件結構與閱讀規範 (Documentation Protocol)
 
-1. **Token 節省優先 (Token Efficiency)**: 
-   - 例外：為了確保正確度，**需要**每次都讀取 `n8n-doc-for-ai.txt`。唯有在確定 JSON 結構或節點參數時，才不閱讀該檔案。
-   - 在撰寫或除錯 Code Node 時，才建議參考 `n8n-common-errors.md`。
+所有說明文件皆已模組化存放於 `docs/` 目錄。**請勿**一次讀取所有文件。僅根據當前任務需求讀取特定檔案。
 
-2. **預設目標檔案**:
-   - 通常沒有明確指定檔案的時候，就代表要改動 `Line bot.json`。
+### 1. LINE API 相關 (`docs/line/`)
+- **Messaging API**: `1-reply-api.md` (回覆), `2-webhook-events.md` (事件), `3-message-objects.md` (訊息格式)
+- **其他功能**: `4-quick-reply.md`, `5-implementation-examples.md`
+- **參考**: `6-reference.md` (錯誤碼、最佳實踐)
+- **使用時機**: 當需要查詢特定 LINE API 格式（如 Quick Reply JSON 結構）時，僅讀取對應檔案。
 
-3. **主動詢問 Commit**:
-   - 完成後需要主動詢問是否 commit。
+### 2. n8n 相關 (`docs/n8n/`)
+- **核心概念**: `n8n-concepts.md` (包含 Workflow JSON 結構範例、API 驗證)
+- **常見錯誤**: `common-errors.md` (開發前必讀，包含 Luxon、換行轉義等雷點)
+- **封存資料**: `archive-n8n-docs-repo.md` (原始龐大文件，除非 `concepts.md` 資訊不足，否則**不要讀取**)
 
-4. **錯誤紀錄機制 (Error Documentation)**:
-   - 當修正錯誤後，**必須**主動詢問使用者：「是否要將此錯誤收錄至錯誤記錄？」
-   - 經確認後，可依據錯誤類型建立新的錯誤記錄檔（例如 `n8n-errors-network.md`）或收錄至 `n8n-common-errors.md`，以符合 Token 節省原則（避免單一檔案過大）。
+### 3. 專案背景 (`docs/project/`)
+- **上下文**: `context.md` (記錄資料庫 Schema、常數、ID)
+- **使用時機**: 當 JSON 中出現看不懂的 ID 或邏輯，或需要新增資料庫欄位時讀取。
 
-5. **知識庫維護 (Knowledge Maintenance)**:
-   - 若在對話中獲得無法從 JSON 代碼直接完整推斷的背景資訊（如資料庫 Schema 定義、特定業務邏輯常數），**必須**將其記錄或更新至 `project-context.md`。
-   - 目的：確保未來 AI 開發者能快速掌握資料結構，無需重新分析 JSON 節點屬性。
+---
 
-## 編輯與操作建議 (Operational Best Practices)
+## ⚠️ 核心開發規則 (Core Development Rules)
 
-為了避免錯誤並提升維護性，建議遵守以下流程：
+1. **Token 節省 (Token Efficiency)**:
+   - **禁止**無差別讀取整個 `docs/` 資料夾。
+   - 修正 Bug 前，先檢查 `docs/n8n/common-errors.md` 是否已有案例。
 
-### 1. 安全與備份
-- **備份優先**: 修改任何 `.json` 檔案前，請先建立備份副本 (例如 `cp Line bot.json Line bot.backup.json`)。
-- **敏感資訊**: 嚴禁在 JSON 參數 (Parameters) 中直接寫死 API Keys、密碼或 Token。應使用 n8n 的 Credentials 機制或環境變數。
+2. **文件維護 (Documentation Maintenance)**:
+   - **新增知識**: 若發現新的資料庫欄位或商業邏輯，**必須**更新 `docs/project/context.md`。
+   - **錯誤收錄**: 修復棘手 Bug 後，**主動詢問**是否收錄至 `docs/n8n/common-errors.md`。
 
-### 2. 結構與格式
-- **JSON 驗證**: 完成編輯後，必須確保檔案是合法的 JSON 格式。遺漏逗號或括號會導致 n8n 無法匯入。
-- **完整性**: 確保檔案保留核心結構：
-  ```json
-  {
-    "nodes": [ ... ],
-    "connections": { ... }
-  }
-  ```
-- **節點命名**: 保持節點名稱具備語意 (例如使用 "Fetch User Data" 而非預設的 "HTTP Request")，這有助於 AI 理解邏輯連接。
+3. **預設目標**:
+   - 若未指定檔案，預設修改 `Line bot.json`。
+   - 修改前**必須**建立備份 (e.g., `cp "Line bot.json" "Line bot.backup.json"`).
 
-### 3. 變更管理
-- **原子化修改**: 如果要移除功能 (如重構)，建議分步驟進行，避免一次性刪除過多節點導致連接混亂。
-- **清理孤立節點**: 移除功能後，請檢查是否有遺留的孤立節點 (Orphaned Nodes) 或無效的連接 (Dangling Connections)。
+4. **Git Commit**:
+   - 完成工作後，主動詢問是否 Commit。
+   - Commit Message 需遵守 Conventional Commits (參考 User Rules)。
 
-### 4. 版本控制
-- 雖然 n8n 內部有版本紀錄，但建議在此資料夾中使用 Git 進行版本控制，撰寫清晰的 Commit Message (例如: `refactor: 移除 Gamification 相關節點`)。
+## 🛠 編輯建議 (Best Practices)
+
+- **JSON 完整性**: 確保編輯後的 JSON 結構正確 (`{ "nodes": [], "connections": {} }`)。
+- **節點命名**: 使用具語意的名稱 (如 "Fetch User Profile")，而非預設名稱。
+- **敏感資訊**: 嚴禁在 JSON 中寫死 Token/Password，請使用 Credentials 或環境變數。
