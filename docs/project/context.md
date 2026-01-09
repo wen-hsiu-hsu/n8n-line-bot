@@ -35,5 +35,11 @@
 ### Commands (Defined in Command Controller)
 - `!owe` / `！欠`: 查詢未繳費名單
 - `!command` / `！指令`: 查詢指令列表
-- `!participants` / `！報名人`: 查詢季度報名人
+- `!participants` / `!people` / `！報名人`: 查詢季度報名人 (可選參數: `e.g. !participants 2025-Q1`)
 - `!next` (Admin only): 下一次通知
+
+### Code Constants (Default Values)
+- **Default Courts**: `2` (metadata node)
+- **Default Price**: `170` (metadata node)
+- **Courts Density**: `7` (players per court, defined in `下次打球 v2`)
+- **Default Off Counts**: `0` (metadata node)

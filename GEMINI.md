@@ -31,6 +31,7 @@
    - 修正 Bug 前，先檢查 `docs/n8n/common-errors.md` 是否已有案例。
 
 2. **文件維護 (Documentation Maintenance)**:
+   - **同步原則**: `docs/project/context.md` 必須與 `Line bot.json` 同步，當 `Line bot.json` 有更新時，需要確保 `docs/project/context.md` 有更新。
    - **新增知識**: 若發現新的資料庫欄位或商業邏輯，**必須**更新 `docs/project/context.md`。
    - **錯誤收錄**: 修復棘手 Bug 後，**主動詢問**是否收錄至 `docs/n8n/common-errors.md`。
 
