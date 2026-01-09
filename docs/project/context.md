@@ -31,6 +31,12 @@
   - `類型` (Select): e.g., "暫停"
   - `場地數` (Number): 該次活動的場地數量 override
   - `請假人` (Relation)
+34: 
+35: ### 4. 所有公告 (All Announcements)
+36: - **ID**: `2e24dbf2-e21c-80b7-83f6-ef99c1dd9425`
+37: - **已知內容 (Pages)**:
+38:   - `NEWS_TEMPLATE`: 公告模板，內容儲存於其 Child Blocks。
+39:   - `PAYMENT`: 付款資訊，內容儲存於其 Child Blocks。
 
 ## System Constants
 
@@ -43,6 +49,7 @@
 - `!participants` / `!people` / `！報名人`: 查詢季度報名人 (可選參數: `e.g. !participants 2025-Q1`)
 - `!next` (Admin only): 下一次通知
 - `!news` / `!announcement` / `！公告`: 查詢最新公告
+- `!payment` / `！付款`: 查詢付款資訊
 
 ### Code Constants (Default Values)
 - **Default Courts**: `2` (metadata node)
