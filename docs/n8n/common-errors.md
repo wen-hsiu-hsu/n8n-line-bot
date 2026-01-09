@@ -121,3 +121,35 @@ return {
   ]
 }
 ```
+
+## 5. Merge Node Error: Invalid 'mode' Parameter
+
+**錯誤訊息**:
+在 n8n 介面或執行時，發現 Merge Node 無法正確合併，或者行為不如預期。
+
+**原因**:
+舊版或特定版本的 n8n 可能不支援某些參數設定。例如 `mergeByIndex` 並不是一個合法的 `mode` 參數值（雖然字面上看起來合理）。在 n8n v1+ 的 Merge Node (版本 2.0+) 中，預設模式通常是 `append` (Append) 或需要明確指定如 `combine` (Combine) 等。
+
+**解決方案**:
+- **不要**在 JSON 中手動設定 `"mode": "mergeByIndex"`。
+- 請檢查 Merge Node 的 `mode` 設定，通常應設定為 `append` (Append) 或留空使用預設值。
+
+**錯誤範例**:
+```json
+// ❌ 這是無效的設定
+{
+  "parameters": {
+    "mode": "mergeByIndex"
+  },
+  "type": "n8n-nodes-base.merge"
+}
+```
+
+**正確範例**:
+```json
+// ✅ 使用預設模式 (Append)
+{
+  "parameters": {},
+  "type": "n8n-nodes-base.merge"
+}
+```

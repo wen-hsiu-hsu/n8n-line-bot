@@ -17,6 +17,11 @@
   - `報名人` (Relation): 關聯至「人員清單」
   - `零打費用` (Number)
   - `報名人數` (Formula)
+  - `每人平均場租` (Formula)
+  - `場租總金額` (Formula)
+  - `場地數` (Number)
+  - `地點` (Rich Text)
+  - `打球日` (Relation): 關聯至「行事曆」
 
 ### 3. 行事曆 (Calendar)
 - **ID**: `0fd76b77-9f07-4aa3-a3c9-12ba18dbe32e`
