@@ -18,7 +18,16 @@
 - **常見錯誤**: `common-errors.md` (開發前必讀，包含 Luxon、換行轉義等雷點)
 - **封存資料**: `archive-n8n-docs-repo.md` (原始龐大文件，除非 `concepts.md` 資訊不足，否則**不要讀取**)
 
-### 3. 專案背景 (`docs/project/`)
+### 3. Notion API 相關 (`docs/notion/`)
+- **核心與結構**: `2-block-base.md` (必讀), `1-block-structure.md` (n8n 簡化版)
+- **Block 類型**: 
+  - `3-text-blocks.md` (Paragraph, Heading, Callout, Quote)
+  - `4-list-blocks.md` (Bulleted, ToDo, Toggle)
+  - `5-media-blocks.md` (Image, File, Embed)
+  - `6-structural-blocks.md` (Divider, Table of Contents)
+- **使用時機**: 當需要處理 Notion Block Children 或公告內容時讀取。
+
+### 4. 專案背景 (`docs/project/`)
 - **上下文**: `context.md` (記錄資料庫 Schema、常數、ID)
 - **使用時機**: 當 JSON 中出現看不懂的 ID 或邏輯，或需要新增資料庫欄位時讀取。
 

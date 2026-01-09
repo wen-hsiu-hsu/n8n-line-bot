@@ -37,6 +37,7 @@
 - `!command` / `！指令`: 查詢指令列表
 - `!participants` / `!people` / `！報名人`: 查詢季度報名人 (可選參數: `e.g. !participants 2025-Q1`)
 - `!next` (Admin only): 下一次通知
+- `!news` / `!announcement` / `！公告`: 查詢最新公告
 
 ### Code Constants (Default Values)
 - **Default Courts**: `2` (metadata node)
