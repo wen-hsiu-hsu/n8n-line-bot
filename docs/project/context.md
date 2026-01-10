@@ -31,12 +31,22 @@
   - `類型` (Select): e.g., "暫停"
   - `場地數` (Number): 該次活動的場地數量 override
   - `請假人` (Relation)
-34: 
-35: ### 4. 所有公告 (All Announcements)
-36: - **ID**: `2e24dbf2-e21c-80b7-83f6-ef99c1dd9425`
-37: - **已知內容 (Pages)**:
-38:   - `NEWS_TEMPLATE`: 公告模板，內容儲存於其 Child Blocks。
-39:   - `PAYMENT`: 付款資訊，內容儲存於其 Child Blocks。
+
+### 4. 所有公告 (All Announcements)
+- **ID**: `2e24dbf2-e21c-80b7-83f6-ef99c1dd9425`
+- **已知內容 (Pages)**:
+  - `NEWS_TEMPLATE`: 公告模板，內容儲存於其 Child Blocks。
+  - `PAYMENT`: 付款資訊，內容儲存於其 Child Blocks。
+
+### 5. TEXT_REPLY (自動回覆)
+- **ID**: `2e34dbf2-e21c-8047-8ac5-fccfc5c02729`
+- **用途**: 當使用者的文字訊息「包含」任一 `name` 時，自動回覆對應的 `property_reply`
+- **已知欄位 (Properties)**:
+  - `name` (Title): 觸發關鍵字
+  - `property_reply` (Text): 對應的回覆訊息
+  - `property_message` (Text): 觸發訊息（與 name 相同）
+  - `property_created` (Date): 建立時間
+
 
 ## System Constants
 
