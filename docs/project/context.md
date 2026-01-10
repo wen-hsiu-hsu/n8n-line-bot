@@ -37,6 +37,13 @@
 - **已知內容 (Pages)**:
   - `NEWS_TEMPLATE`: 公告模板，內容儲存於其 Child Blocks。
   - `PAYMENT`: 付款資訊，內容儲存於其 Child Blocks。
+  - `WELCOME_MESSAGE`: 歡迎訊息，當機器人被加入群組/聊天室時自動發送。
+    - **支援的 Placeholder**:
+      - `{NEW_FRIEND}`: 自動替換為加入群組的新成員（使用 LINE textV2 mention）
+      - `{MANAGER}`: 自動替換為管理員（User ID: `U2a0a2c5054c4fa12b78a1d059411e39c`）
+    - **實現方式**: 使用 LINE Messaging API **Text Message v2** 格式
+      - `type: "textV2"`
+      - 使用 `substitution` 物件定義 placeholder 的 mention 替換
 
 ### 5. TEXT_REPLY (自動回覆)
 - **ID**: `2e34dbf2-e21c-8047-8ac5-fccfc5c02729`
@@ -60,6 +67,9 @@
 - `!next` (Admin only): 下一次通知
 - `!news` / `!announcement` / `！公告`: 查詢最新公告
 - `!payment` / `！付款`: 查詢付款資訊
+
+### Event Handlers
+- **Join Event**: 當機器人被加入 `group` 或 `room` 時，會觸發 `取得歡迎訊息` 並回覆。
 
 ### Code Constants (Default Values)
 - **Default Courts**: `2` (metadata node)

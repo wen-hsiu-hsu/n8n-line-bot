@@ -42,6 +42,8 @@
 
 當使用者向機器人傳送訊息時觸發。
 
+#### 基本文字訊息
+
 ```json
 {
   "replyToken": "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA",
@@ -65,6 +67,51 @@
 | `type` | String | 固定值 `message` |
 | `replyToken` | String | ✅ 可回覆的事件，包含此欄位 |
 | `message` | Object | 訊息物件，包含 `type` 和根據類型的其他欄位 |
+
+#### 包含 Mention 的文字訊息
+
+當訊息中包含提及（@使用者或@機器人）時，會額外包含 `mention` 物件：
+
+```json
+{
+  "replyToken": "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA",
+  "type": "message",
+  "mode": "active",
+  "timestamp": 1462629479859,
+  "source": {
+    "type": "group",
+    "groupId": "Ca56f4a45e49..."
+  },
+  "message": {
+    "type": "text",
+    "id": "100001",
+    "text": "Hi @John, can you help?",
+    "mention": {
+      "mentionees": [
+        {
+          "index": 3,
+          "length": 5,
+          "type": "user",
+          "userId": "U4af4980629...",
+          "isSelf": false
+        }
+      ]
+    }
+  }
+}
+```
+
+**`message.mention` 物件欄位說明**：
+
+| 欄位名稱 | 型別 | 必填 | 說明 |
+|---------|------|------|------|
+| `mention` | Object | ❌ | 僅當訊息包含提及時存在 |
+| `mention.mentionees` | Array | ✅ | 被提及的對象陣列（最多 20 個） |
+| `mentionees[].index` | Number | ✅ | 提及文字在 `text` 中的起始位置（從 0 開始） |
+| `mentionees[].length` | Number | ✅ | 提及文字的長度（例如 @example 的長度為 8） |
+| `mentionees[].type` | String | ✅ | 提及類型：`user`（使用者或機器人）、`all`（整個群組） |
+| `mentionees[].userId` | String | ❌ | 被提及的使用者 ID（僅當 `type` 為 `user` 且使用者同意時存在） |
+| `mentionees[].isSelf` | Boolean | ❌ | 是否提及機器人本身（僅當 `type` 為 `user` 時存在）<br>`true`: 提及的是接收 webhook 的機器人<br>`false`: 提及的是其他使用者 |
 
 **可回覆**: ✅ 是
 

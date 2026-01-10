@@ -38,76 +38,143 @@
 
 ### 3.2 Text Message (v2)（文字訊息 v2 版本）
 
-支援更多功能的文字訊息版本，包括**文字樣式、表情符號、提及**等功能。
+支援更多功能的文字訊息版本，包括**表情符號、提及（Mention）**等功能。
+
+> **⚠️ 重要提醒**
+> - **Text Message v1** (`type: "text"`) **不支援 Mention 功能**
+> - **必須使用 Text Message v2** (`type: "textV2"`) 才能使用 Mention
+> - v2 使用 `substitution` 物件搭配 placeholder 來實現動態替換
 
 #### 發送文字訊息 (v2)
 
 ```json
 {
-  "type": "text",
-  "text": "Hello, world",
-  "emojis": [
-    {
-      "index": 0,
-      "length": 5,
-      "productId": "5ac1bfd5040ab15980c9b435",
-      "emojiId": "001"
+  "type": "textV2",
+  "text": "Welcome, {user1}! {laugh}\n{everyone} There is a newcomer!",
+  "substitution": {
+    "user1": {
+      "type": "mention",
+      "mentionee": {
+        "type": "user",
+        "userId": "U49585cd0d5..."
+      }
+    },
+    "laugh": {
+      "type": "emoji",
+      "productId": "5a8555cfe6256cc92ea23c2a",
+      "emojiId": "002"
+    },
+    "everyone": {
+      "type": "mention",
+      "mentionee": {
+        "type": "all"
+      }
     }
-  ],
-  "mentionedUsers": [
-    {
-      "index": 0,
-      "length": 5,
-      "userId": "U4af4980629..."
-    }
-  ]
+  }
 }
 ```
 
 | 欄位名稱 | 型別 | 必填 | 說明 |
 |---------|------|------|------|
-| `type` | String | ✅ | 固定值 `text` |
-| `text` | String | ✅ | 訊息文字內容（Max: 2,000 字） |
-| `emojis` | Array | ❌ | LINE 表情符號陣列 |
-| `emojis[].index` | Integer | ✅ | 表情在文字中的起始位置 |
-| `emojis[].length` | Integer | ✅ | 表情的長度（通常為 5） |
-| `emojis[].productId` | String | ✅ | 表情產品 ID |
-| `emojis[].emojiId` | String | ✅ | 表情 ID |
-| `mentionedUsers` | Array | ❌ | 被提及的使用者陣列 |
-| `mentionedUsers[].index` | Integer | ✅ | 提及在文字中的起始位置 |
-| `mentionedUsers[].length` | Integer | ✅ | 提及的長度 |
-| `mentionedUsers[].userId` | String | ✅ | 被提及的使用者 ID |
+| `type` | String | ✅ | 固定值 `textV2` |
+| `text` | String | ✅ | 訊息文字內容，可包含 placeholder `{key}`（Max: 5,000 字） |
+| `substitution` | Object | ❌ | 定義 placeholder 的替換內容（Max: 20 個 placeholder） |
 
-#### 文字訊息 v2 範例
+#### Substitution 物件格式
 
-**帶有 LINE 表情符號的訊息**:
+**Mention 使用者**:
 ```json
 {
-  "type": "text",
-  "text": "Hello $",
-  "emojis": [
-    {
-      "index": 6,
-      "length": 5,
-      "productId": "5ac1bfd5040ab15980c9b435",
-      "emojiId": "001"
+  "key_name": {
+    "type": "mention",
+    "mentionee": {
+      "type": "user",
+      "userId": "U49585cd0d5..."
     }
-  ]
+  }
 }
 ```
 
-**提及使用者的訊息**:
+| 欄位名稱 | 型別 | 必填 | 說明 |
+|---------|------|------|------|
+| `type` | String | ✅ | 固定值 `mention` |
+| `mentionee.type` | String | ✅ | `user`（提及使用者）或 `all`（提及全體） |
+| `mentionee.userId` | String | ✅* | 使用者 ID（當 `type` 為 `user` 時必填） |
+
+**Mention 全體成員**:
 ```json
 {
-  "type": "text",
-  "text": "Hello @User1",
-  "mentionedUsers": [
-    {
-      "index": 6,
-      "length": 5,
-      "userId": "U4af4980629..."
+  "key_name": {
+    "type": "mention",
+    "mentionee": {
+      "type": "all"
     }
-  ]
+  }
+}
+```
+
+**LINE 表情符號**:
+```json
+{
+  "key_name": {
+    "type": "emoji",
+    "productId": "5a8555cfe6256cc92ea23c2a",
+    "emojiId": "002"
+  }
+}
+```
+
+| 欄位名稱 | 型別 | 必填 | 說明 |
+|---------|------|------|------|
+| `type` | String | ✅ | 固定值 `emoji` |
+| `productId` | String | ✅ | LINE 表情符號產品 ID |
+| `emojiId` | String | ✅ | 表情符號 ID |
+
+#### 文字訊息 v2 範例
+
+**提及使用者**:
+```json
+{
+  "type": "textV2",
+  "text": "嗨 {newFriend}，歡迎加入！主揪是 {manager}",
+  "substitution": {
+    "newFriend": {
+      "type": "mention",
+      "mentionee": {
+        "type": "user",
+        "userId": "U1a65fcd10b7bc0f207cac34ae0f70546"
+      }
+    },
+    "manager": {
+      "type": "mention",
+      "mentionee": {
+        "type": "user",
+        "userId": "U2a0a2c5054c4fa12b78a1d059411e39c"
+      }
+    }
+  }
+}
+```
+
+**混合使用 Mention 和 Emoji**:
+```json
+{
+  "type": "textV2",
+  "text": "Hello {user}! {wave}",
+  "substitution": {
+    "user": {
+      "type": "mention",
+      "mentionee": {
+        "type": "user",
+        "userId": "U4af4980629..."
+      }
+    },
+    "wave": {
+      "type": "emoji",
+      "productId": "5ac1bfd5040ab15980c9b435",
+      "emojiId": "001"
+    }
+  }
 }
 ```
 
