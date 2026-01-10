@@ -54,6 +54,21 @@
   - `property_message` (Text): 觸發訊息（與 name 相同）
   - `property_created` (Date): 建立時間
 
+### 6. USERS (使用者資料庫)
+- **ID**: `2e44dbf2-e21c-80d1-af81-c3b61579b3bb`
+- **用途**: 追蹤與機器人互動的所有使用者，記錄訊息數量與所在群組/聊天室
+- **已知欄位 (Properties)**:
+  - `user_id` (Title): LINE User ID（唯一識別碼）
+  - `is_admin` (Checkbox): 是否為管理員（預設: `false`）
+  - `message_counts` (Number): 使用者累積發送的訊息數量
+  - `Custom Name` (Rich Text): 使用者自訂名稱（保留欄位，目前未使用）
+  - `groups` (Multi-select): 使用者所在的所有群組 ID 列表（來自 `source.groupId`）
+  - `multi-chat` (Multi-select): 使用者所在的所有聊天室 ID 列表（來自 `source.roomId`）
+- **資料來源對應**:
+  - 群組訊息（`source.type = "group"`）→ 更新 `groups` 欄位
+  - 聊天室訊息（`source.type = "room"`）→ 更新 `multi-chat` 欄位
+  - 私訊（`source.type = "user"`）→ 兩個欄位都不更新
+
 
 ## System Constants
 
@@ -69,7 +84,53 @@
 - `!payment` / `！付款`: 查詢付款資訊
 
 ### Event Handlers
-- **Join Event**: 當機器人被加入 `group` 或 `room` 時，會觸發 `取得歡迎訊息` 並回覆。
+
+#### 1. User Management (使用者管理)
+當任何事件包含 `source.userId` 時，會自動觸發使用者管理流程：
+
+**節點流程**:
+1. `Check User Source` (If): 檢查是否有 `source.userId`
+   - True → 進入使用者管理流程
+   - False → 直接跳到 `Event Switch`（處理無使用者的事件）
+
+2. `取得使用者表` (Notion GetAll): 查詢 USERS 資料庫中是否存在該 User ID
+   - 使用 `alwaysOutputData: true` 確保空結果也會輸出
+
+3. `Check User Exists` (Code): 判斷使用者是否存在
+   - 檢查查詢結果是否有效（非空且包含 Notion page ID）
+   - 取得當前的 `source.groupId` 和 `source.roomId`
+   - 輸出：`userExists`, `userId`, `notionPageId`, `currentMessageCount`, `currentGroups`, `currentMultiChat`, `currentGroupId`, `currentRoomId`
+
+4. `User Exists Switch` (If): 根據使用者是否存在分支
+   - True → `Prepare Update Data` → `更新使用者`
+   - False → `新增使用者`
+
+5. `Prepare Update Data` (Code): 合併群組/聊天室資料（僅在更新時）
+   - 取得現有的 `groups` 和 `multi-chat` 陣列
+   - 如果有新的 `groupId`，加入 `groups`（去重）
+   - 如果有新的 `roomId`，加入 `multi-chat`（去重）
+
+6. `更新使用者` (Notion Update): 更新現有使用者
+   - `message_counts` +1
+   - `groups`: 更新後的群組列表
+   - `multi-chat`: 更新後的聊天室列表
+
+7. `新增使用者` (Notion Create): 建立新使用者
+   - `user_id`: LINE User ID
+   - `is_admin`: false
+   - `message_counts`: 1
+   - `groups`: 如果有 `groupId` 則設為 `[groupId]`，否則為空陣列
+   - `multi-chat`: 如果有 `roomId` 則設為 `[roomId]`，否則為空陣列
+
+8. `Merge User Management`: 合併兩個分支後繼續執行 `Event Switch`
+
+**重要設計**:
+- 使用者可能在多個群組/聊天室中與機器人互動，`groups` 和 `multi-chat` 會累積記錄所有互動的地點
+- 一次只會更新 `groups` 或 `multi-chat` 其中之一（取決於訊息來源）
+- 私訊不會更新這兩個欄位（保持原值）
+
+#### 2. Join Event (加入事件)
+當機器人被加入 `group` 或 `room` 時，會觸發 `取得歡迎訊息` 並回覆。
 
 ### Code Constants (Default Values)
 - **Default Courts**: `2` (metadata node)
