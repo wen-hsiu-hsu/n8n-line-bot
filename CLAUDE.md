@@ -21,7 +21,7 @@
 
 ### 3. Notion API 相關 (`docs/notion/`)
 - **核心與結構**: `2-block-base.md` (必讀), `1-block-structure.md` (n8n 簡化版)
-- **Block 類型**:
+- **Block 類型**: 
   - `3-text-blocks.md` (Paragraph, Heading, Callout, Quote)
   - `4-list-blocks.md` (Bulleted, ToDo, Toggle)
   - `5-media-blocks.md` (Image, File, Embed)
