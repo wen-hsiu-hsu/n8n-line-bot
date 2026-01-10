@@ -153,3 +153,78 @@ return {
   "type": "n8n-nodes-base.merge"
 }
 ```
+
+## 6. LINE `unsend` Event 無 `replyToken`
+
+**錯誤現象**:
+當處理 LINE `unsend` (收回訊息) 事件時，使用 Reply API 會失敗，或者 `replyToken` 為 `undefined`。
+
+**原因**:
+LINE 的 `unsend` webhook event **不包含 `replyToken` 欄位**。這是因為收回訊息是一個「通知」類型的事件，並不預期機器人會直接「回覆」。
+
+**解決方案**:
+必須改用 **Push API** (`POST https://api.line.me/v2/bot/message/push`) 來主動推送訊息。
+
+**Unsend Event 結構範例**:
+```json
+{
+  "type": "unsend",
+  "mode": "active",
+  "timestamp": 1768034450661,
+  "source": {
+    "type": "group",
+    "groupId": "Ca18e766e2730654fc1ca2573a14e01e2",
+    "userId": "U2a0a2c5054c4fa12b78a1d059411e39c"
+  },
+  "unsend": {
+    "messageId": "595931980064620851"
+  }
+  // ⚠️ 注意：沒有 replyToken 欄位
+}
+```
+
+**錯誤範例（使用 Reply API）**:
+```javascript
+// ❌ unsend event 沒有 replyToken，會導致 API 錯誤
+const replyToken = $json.replyToken; // undefined
+return {
+  replyToken: replyToken,
+  messages: [{ type: "text", text: "我有看到你傳什麼 😈" }]
+};
+```
+
+**正確範例（使用 Push API）**:
+```javascript
+// ✅ 從 source 取得推送目標
+const source = $json.source;
+const to = source.groupId || source.roomId || source.userId;
+
+return {
+  to: to,
+  messages: [
+    {
+      type: "text",
+      text: "我有看到你傳什麼 😈"
+    }
+  ]
+};
+```
+
+**n8n HTTP Request 節點設定**:
+- **Method**: `POST`
+- **URL**: `https://api.line.me/v2/bot/message/push`
+- **Body Parameters**:
+  - `to`: `={{ $json.to }}`
+  - `messages`: `={{ $json.messages }}`
+
+**無 replyToken 的 LINE Event 清單**:
+- ✅ `message`: 有 replyToken（可用 Reply API）
+- ✅ `join`: 有 replyToken（可用 Reply API）
+- ✅ `memberJoined`: 有 replyToken（可用 Reply API）
+- ✅ `postback`: 有 replyToken（可用 Reply API）
+- ❌ **`unsend`**: **無** replyToken（必須用 Push API）
+- ❌ `follow`: 無 replyToken（視情況使用 Push API）
+- ❌ `unfollow`: 無 replyToken（無需回覆）
+- ❌ `leave`: 無 replyToken（無需回覆）
+
+**參考文件**: `docs/line/2-webhook-events.md`

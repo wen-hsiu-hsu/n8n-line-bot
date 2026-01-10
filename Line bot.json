@@ -1225,6 +1225,10 @@
             {
               "value2": "memberJoined",
               "output": 1
+            },
+            {
+              "value2": "unsend",
+              "output": 2
             }
           ]
         }
@@ -1292,6 +1296,55 @@
         28528,
         23360
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const eventData = $('Split Out').first().json;\nconst source = eventData.source;\n\n// 決定推送目標（群組或個人）\nconst to = source.groupId || source.roomId || source.userId;\n\nif (!to) {\n  throw new Error('無法取得推送目標 (groupId/roomId/userId)');\n}\n\n// 取得收回訊息的用戶 ID\nconst userId = source.userId;\n\n// 建立帶有 mention 的訊息\nconst message = {\n  \"type\": \"textV2\",\n  \"text\": \"{USER} 我有看到你傳什麼 😈\"\n};\n\n// 如果有 userId，加入 mention 功能\nif (userId) {\n  message.substitution = {\n    USER: {\n      type: \"mention\",\n      mentionee: {\n        type: \"user\",\n        userId: userId\n      }\n    }\n  };\n} else {\n  // 如果沒有 userId（理論上不會發生），改用普通文字\n  message.type = \"text\";\n  message.text = \"我有看到你傳什麼 😈\";\n}\n\nreturn {\n  to: to,\n  messages: [message]\n};"
+      },
+      "id": "unsend-handler-001",
+      "name": "Unsend Message Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        28528,
+        23552
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $json.to }}"
+            },
+            {
+              "name": "messages",
+              "value": "={{ $json.messages }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "unsend-push-api-001",
+      "name": "Push Unsend Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        28976,
+        23552
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EeeK58MFzM1kWVEe",
+          "name": "Line 球來就打"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -1352,6 +1405,13 @@
         [
           {
             "node": "Join Source Filter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unsend Message Handler",
             "type": "main",
             "index": 0
           }
@@ -1861,6 +1921,17 @@
         [
           {
             "node": "Welcome Message Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unsend Message Handler": {
+      "main": [
+        [
+          {
+            "node": "Push Unsend Message",
             "type": "main",
             "index": 0
           }
