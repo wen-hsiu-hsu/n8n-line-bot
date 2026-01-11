@@ -73,7 +73,9 @@
 ## System Constants
 
 ### Manager Info
-- **Manager User ID**: `U2a0a2c5054c4fa12b78a1d059411e39c` (Line User ID)
+- **Admin Checking Method**: Dynamic check via USERS database `is_admin` field
+- **Implementation**: Lazy-loaded Notion queries in command and auto reply paths
+- ~~**Manager User ID**: `U2a0a2c5054c4fa12b78a1d059411e39c` (Deprecated - now using database)~~
 
 ### Commands (Defined in Command Controller)
 - `!owe` / `！欠`: 查詢未繳費名單
@@ -146,7 +148,30 @@
 - 不要修改使用者管理流程來新增功能依賴
 - 保持使用者管理流程與業務邏輯隔離
 
-#### 2. Join Event (加入事件)
+#### 2. Admin Checking (2026-01-12 Update)
+管理員權限檢查現已改為動態查詢 USERS 資料庫，替代過去的硬編碼 User ID 檢查。
+
+**Command Path (is command = TRUE):**
+1. `取得使用者表 (lazy)` (Notion Query): 查詢 USERS 資料庫以取得使用者的 `is_admin` 狀態
+2. `Merge Admin Into Event` (Code): 將 `is_admin` 合併至事件資料（`_is_admin` 欄位）
+3. `if this user is manager` (If): 檢查 `$json._is_admin === true`
+   - TRUE → 執行 Manager rules + Command controller (管理員可用所有指令)
+   - FALSE → 僅執行 Command controller (一般使用者僅可用普通指令)
+
+**Auto Reply Path (is command = FALSE):**
+1. `Check Admin Before Auto Reply` (Notion Query): 查詢使用者是否為管理員
+2. `Extract Admin For Auto Reply` (Code): 提取 `is_admin` 並合併至事件
+3. `Skip Auto Reply If Admin` (If): 檢查 `$json._is_admin === true` AND webhook URL 不包含 "webhook-test"
+   - TRUE → 流程結束（管理員不觸發自動回覆）
+   - FALSE → 繼續執行 `取得 auto reply message`（一般使用者觸發自動回覆，或測試 webhook）
+
+**Edge Cases:**
+- 若使用者不存在於資料庫：視為 `is_admin = false`（保守預設值）
+- 若 `is_admin` 欄位為 null/undefined：視為 `false`（嚴格布林檢查）
+- 使用 Lazy Loading 策略：僅在需要時查詢（節省 API 呼叫）
+- **測試例外**: 若 webhook URL 包含 "webhook-test"，即使是管理員也會觸發自動回覆（方便測試）
+
+#### 3. Join Event (加入事件)
 當機器人被加入 `group` 或 `room` 時，會觸發 `取得歡迎訊息` 並回覆。
 
 ### Code Constants (Default Values)

@@ -515,3 +515,71 @@ Check User Source
 - 保持 side effect 流程與業務邏輯隔離
 
 **參考**: 此優化已應用於使用者管理流程，詳見 `docs/project/context.md` 的「並行執行架構」章節。
+
+## 7. Code Node: Can't use .all() in 'Run Once for Each Item' mode
+
+**錯誤訊息**:
+```
+"errorMessage": "Can't use .all() here [line X, for item 0]",
+"errorDescription": "This is only available in 'Run Once for All Items' mode"
+```
+
+**原因**:
+在 Code Node 中，`$input.all()` 方法只能在預設模式（Run Once for All Items）下使用。如果設定為 `"mode": "runOnceForEachItem"`，則無法使用此方法。
+
+**場景**:
+當需要處理 Notion 查詢結果時，可能會遇到空陣列（使用者不存在）的情況。在 `runOnceForEachItem` 模式下，空陣列不會執行任何 iteration，導致後續節點無法取得資料。
+
+**解決方案**:
+使用預設的 "Run Once for All Items" 模式，並手動處理 items：
+
+**錯誤範例**:
+```javascript
+{
+  "parameters": {
+    "mode": "runOnceForEachItem",  // ❌ 會導致錯誤
+    "jsCode": "const users = $input.all(); // Error!"
+  }
+}
+```
+
+**正確範例**:
+```javascript
+{
+  "parameters": {
+    // 不設定 mode，使用預設的 "Run Once for All Items"
+    "jsCode": `// Get user query results from Notion
+const users = $input.all();
+const hasValidUser = users.length > 0 && users[0].json && users[0].json.id;
+
+let isAdmin = false;
+if (hasValidUser) {
+  const user = users[0].json;
+  isAdmin = user.property_is_admin === true;
+}
+
+// Return as array with proper format
+return [{
+  json: {
+    ...originalData,
+    _is_admin: isAdmin
+  }
+}];`
+  }
+}
+```
+
+**關鍵要點**:
+1. **預設模式**: 不設定 `mode` 參數，使用預設的 "Run Once for All Items"
+2. **處理空陣列**: 使用 `users.length > 0` 檢查，避免存取不存在的 `users[0]`
+3. **返回格式**: 必須返回 `[{json: {...}}]` 格式的陣列
+4. **適用場景**: 當上游節點可能返回空陣列（如 Notion filtered query），且需要保證下游節點一定會執行時
+
+**實際案例**:
+在 Admin Checking 功能中，查詢 USERS 資料庫時：
+- 使用者存在 → Notion 返回 `[{user data}]` → 提取 `property_is_admin`
+- 使用者不存在 → Notion 返回 `[]` → 設定 `isAdmin = false`（保守預設值）
+
+兩種情況都需要輸出結果給下游節點，因此不能使用 `runOnceForEachItem` 模式。
+
+**參考**: Admin Checking 實作詳見 `docs/project/context.md` 的「Admin Checking」章節。
