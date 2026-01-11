@@ -284,7 +284,7 @@
                   {
                     "id": "18fbd263-5f9a-42f8-9d26-e4fe973b4135",
                     "leftValue": "={{ $('active').item.json.message.text }}",
-                    "rightValue": "=!next",
+                    "rightValue": "!next",
                     "operator": {
                       "type": "string",
                       "operation": "startsWith"
@@ -1532,6 +1532,20 @@
         19776,
         32272
       ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 恢復原始 webhook event 數據\nconst originalEvent = $('active').item.json;\nreturn originalEvent;"
+      },
+      "id": "restore-original-event-001",
+      "name": "Restore Original Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        19936,
+        32272
+      ]
     }
   ],
   "pinData": {},
@@ -1650,6 +1664,17 @@
       ]
     },
     "Merge User Management": {
+      "main": [
+        [
+          {
+            "node": "Restore Original Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Original Event": {
       "main": [
         [
           {
