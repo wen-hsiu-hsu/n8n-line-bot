@@ -419,3 +419,99 @@ if ($('Webhook').first().json.webhookUrl.includes('webhook-test')) {
 - ✅ 使用**明確的數據欄位**來標記狀態（如 `environment` 欄位）
 - ✅ 使用 **Set 節點**在分支起點設定標記
 - ❌ 不要依賴節點執行狀態的推斷
+
+## 11. 使用並行連接優化效能：移除阻塞依賴
+
+**場景**:
+當某個流程（如資料庫更新、日誌記錄）需要執行，但後續的主要業務邏輯不依賴其執行結果時，可以使用並行連接來避免阻塞。
+
+**範例：使用者表更新流程優化**
+
+**問題**:
+```
+Check User Source
+  ↓ (有 userId)
+取得使用者表 → ... (9 個節點) → Restore Original Event
+  ↓
+Event Switch ⚠️ 被阻塞，需等待使用者表更新完成
+```
+
+當事件有 `userId` 時，Event Switch 必須等待整個使用者表更新流程（9 個節點）完成。但實際上，目前的功能都還沒有用到使用者表的資訊，這個等待是不必要的。
+
+**解決方案：並行執行**
+
+利用 n8n 的並行連接機制，讓條件節點同時連接到兩個目標：
+1. 資料更新流程（成為獨立的 side effect）
+2. 主要業務邏輯（立即執行）
+
+**修改前的連接**:
+```json
+"Check User Source": {
+  "main": [
+    [
+      {"node": "取得使用者表", "type": "main", "index": 0}
+    ],
+    [
+      {"node": "Event Switch", "type": "main", "index": 0}
+    ]
+  ]
+}
+```
+
+**修改後的連接**:
+```json
+"Check User Source": {
+  "main": [
+    [
+      {"node": "取得使用者表", "type": "main", "index": 0},
+      {"node": "Event Switch", "type": "main", "index": 0}
+    ],
+    [
+      {"node": "Event Switch", "type": "main", "index": 0}
+    ]
+  ]
+}
+```
+
+同時移除原本的阻塞連接：
+```json
+// 從這樣
+"Restore Original Event": {
+  "main": [
+    [{"node": "Event Switch", "type": "main", "index": 0}]
+  ]
+}
+
+// 改成這樣（清空輸出）
+"Restore Original Event": {
+  "main": []
+}
+```
+
+**結果**:
+```
+Check User Source
+  ├─ Output 0 (有 userId) ─┬→ 取得使用者表 → ... → Restore Original Event (並行執行)
+  │                        └→ Event Switch (立即執行) ✅
+  └─ Output 1 (無 userId) ──→ Event Switch
+```
+
+**效益**:
+- Event Switch 不再等待使用者表更新（省略 9 個節點的執行時間）
+- 使用者表仍會正常更新，只是變成非阻塞的 side effect
+- 主要業務邏輯的回應速度大幅提升
+
+**注意事項**:
+1. **資料可用性**：並行執行意味著資料不會立即可用。如果未來某個功能需要使用者表資料，必須明確查詢資料庫，不能假設更新已完成。
+2. **錯誤處理**：並行流程的錯誤不會阻塞主流程，需要額外的監控機制。
+3. **適用場景**：
+   - ✅ 日誌記錄、統計更新等 side effect
+   - ✅ 不影響當前業務邏輯的資料同步
+   - ❌ 主流程依賴的關鍵資料獲取
+
+**最佳實踐**:
+- 明確記錄哪些資料是非同步更新的
+- 需要該資料時，主動查詢而不是依賴傳遞
+- 保持 side effect 流程與業務邏輯隔離
+
+**參考**: 此優化已應用於使用者管理流程，詳見 `docs/project/context.md` 的「並行執行架構」章節。
