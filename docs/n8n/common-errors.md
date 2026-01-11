@@ -228,3 +228,194 @@ return {
 - ❌ `leave`: 無 replyToken（無需回覆）
 
 **參考文件**: `docs/line/2-webhook-events.md`
+
+## 7. n8n 節點連接方式錯誤：多輸出 vs 並行輸出
+
+**錯誤現象**:
+```
+Cannot assign to read only property 'name' of object 'Error: Node '取得打球日 (Push)' hasn't been executed'
+```
+
+**原因**:
+誤解 n8n 的節點連接機制。在 n8n 中：
+- **多輸出分支**（index 0, 1, 2）：用於條件判斷節點（如 IF、Switch），每次執行只會走其中一條分支
+- **並行輸出**（同一分支連接多個節點）：多個節點會同時接收到相同的輸入數據並並行執行
+
+如果將應該並行執行的節點設定成不同的 index，會導致某些節點沒有被執行，後續節點引用時就會報錯。
+
+**錯誤範例**:
+```json
+// ❌ 錯誤：將並行節點設為不同分支
+"metadata (Push)": {
+  "main": [
+    [{"node": "取得該季資訊 (Push)", "type": "main", "index": 0}],
+    [{"node": "取得打球日 (Push)", "type": "main", "index": 0}],
+    [{"node": "Get People Next (Push)", "type": "main", "index": 0}]
+  ]
+}
+// 結果：只有第一個分支會執行，其他兩個節點不會執行
+```
+
+**正確範例**:
+```json
+// ✅ 正確：將並行節點放在同一個分支
+"metadata (Push)": {
+  "main": [
+    [
+      {"node": "取得該季資訊 (Push)", "type": "main", "index": 0},
+      {"node": "取得打球日 (Push)", "type": "main", "index": 0},
+      {"node": "Get People Next (Push)", "type": "main", "index": 0}
+    ]
+  ]
+}
+// 結果：三個節點會並行執行，都能接收到 metadata (Push) 的輸出
+```
+
+**區分方式**:
+- **需要並行**：數據獲取、API 呼叫等可以同時進行的操作
+- **需要分支**：IF 節點的 True/False、Switch 節點的不同 case
+
+## 8. 訪問未執行的節點導致錯誤
+
+**錯誤訊息**:
+```
+Cannot assign to read only property 'name' of object 'Error: Node 'Set Environment (Test)' hasn't been executed'
+```
+
+**原因**:
+在 Code 節點中使用 `$('節點名稱')` 嘗試訪問一個在當前執行路徑中沒有被執行的節點。
+
+例如：工作流有兩個 Trigger（Manual 和 Schedule），每次執行只會觸發其中一個。如果在下游節點中嘗試訪問兩個 Trigger 後的節點，會導致訪問到未執行的節點。
+
+**錯誤範例**:
+```javascript
+// ❌ 錯誤：嘗試訪問可能未執行的節點
+const testEnv = $("Set Environment (Test)").all();
+if (testEnv && testEnv.length > 0) {
+  environment = testEnv[0].json.environment;
+} else {
+  const prodEnv = $("Set Environment (Production)").all();
+  environment = prodEnv[0].json.environment;
+}
+// 如果是 Schedule Trigger，Set Environment (Test) 沒執行，會報錯
+```
+
+**正確範例**:
+```javascript
+// ✅ 正確：從必定執行的上游節點獲取數據
+const metadataNode = $("metadata (Push)").first();
+const environment = metadataNode?.json?.environment || "production";
+
+// metadata (Push) 是兩條路徑的交集點，必定會被執行
+```
+
+**設計原則**:
+1. **數據應該沿著執行路徑傳遞**，而不是跨路徑訪問
+2. **在分支匯合點之前保存必要的數據**（如 metadata 節點）
+3. **使用 Merge 節點匯合後，只能訪問匯合點之後的節點**
+
+## 9. 數據在節點間傳遞時被覆蓋
+
+**錯誤現象**:
+在 Code 節點中設定了 `environment` 欄位，但經過幾個 Notion 節點後，該欄位消失了。
+
+**原因**:
+大部分 n8n 節點（特別是 API 節點如 Notion、HTTP Request）會將上游的數據**完全替換**為 API 的回應內容，而不是合併。因此，如果你在上游設定的自訂欄位，會在經過這些節點後遺失。
+
+**數據流範例**:
+```
+metadata (Push) 輸出:
+{
+  "nextSaturdayQuarter": "2026-Q1",
+  "environment": "test"  ✅
+}
+  ↓
+取得該季資訊 (Push) [Notion Node] 輸出:
+{
+  "id": "123",
+  "properties": {...}
+  // ❌ environment 欄位被覆蓋了
+}
+  ↓
+下游節點: $json.environment → undefined ❌
+```
+
+**解決方案**:
+
+**方案 1：在最上游節點保存，在需要時重新獲取**
+```javascript
+// 在組起來 (Push) 節點中
+const messages = $input.all().map(item => item.json);
+
+// 從 metadata (Push) 重新獲取 environment
+const metadataNode = $("metadata (Push)").first();
+const environment = metadataNode?.json?.environment || "production";
+
+return {
+  messages,
+  environment  // 重新注入 environment
+}
+```
+
+**方案 2：使用 Set 節點設定 workflow 層級的靜態數據**
+```json
+// Set 節點（在分支起點）
+{
+  "parameters": {
+    "assignments": {
+      "assignments": [
+        {
+          "name": "environment",
+          "value": "test",
+          "type": "string"
+        }
+      ]
+    }
+  }
+}
+```
+
+**最佳實踐**:
+1. **關鍵的上下文數據**（如環境標記、用戶 ID）應該在工作流的**最上游**設定
+2. **在需要時從上游節點重新獲取**，而不是依賴中間節點傳遞
+3. **Merge 節點不會保留被覆蓋的欄位**，需要手動重新獲取
+
+## 10. 使用 `itemMatches()` 判斷節點執行狀態不可靠
+
+**錯誤用法**:
+```javascript
+// ❌ 不可靠的判斷方式
+if ($('Manual Trigger (Push Test)').itemMatches(0)) {
+  // 測試環境
+} else {
+  // 正式環境
+}
+```
+
+**原因**:
+`itemMatches()` 的行為在不同場景下可能不一致，且嘗試訪問未執行的節點本身就會導致錯誤。
+
+**正確方案**:
+
+**方案 1：使用明確的環境標記**
+```
+Manual Trigger → Set Environment (Test) [設定 environment="test"]
+Schedule Trigger → Set Environment (Production) [設定 environment="production"]
+  ↓
+在下游判斷: {{ $json.environment }} equals "test"
+```
+
+**方案 2：使用不同的 Webhook URL**
+```javascript
+// 判斷 webhook url 包含特定關鍵字
+if ($('Webhook').first().json.webhookUrl.includes('webhook-test')) {
+  // 測試環境
+} else {
+  // 正式環境
+}
+```
+
+**最佳實踐**:
+- ✅ 使用**明確的數據欄位**來標記狀態（如 `environment` 欄位）
+- ✅ 使用 **Set 節點**在分支起點設定標記
+- ❌ 不要依賴節點執行狀態的推斷
