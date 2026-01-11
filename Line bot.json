@@ -1904,6 +1904,11 @@
             "node": "取得使用者表",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Event Switch",
+            "type": "main",
+            "index": 0
           }
         ],
         [
@@ -2000,15 +2005,7 @@
       ]
     },
     "Restore Original Event": {
-      "main": [
-        [
-          {
-            "node": "Event Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": []
     },
     "未繳費名單": {
       "main": [
