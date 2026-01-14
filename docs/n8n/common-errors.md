@@ -583,3 +583,287 @@ return [{
 兩種情況都需要輸出結果給下游節點，因此不能使用 `runOnceForEachItem` 模式。
 
 **參考**: Admin Checking 實作詳見 `docs/project/context.md` 的「Admin Checking」章節。
+
+## 12. HTTP Request Node: `outputPropertyName` 設定無效
+
+**錯誤現象**:
+在 HTTP Request 節點設定了 `outputPropertyName: "api_response"`，期望 API 回應存放在 `$json.api_response`，但實際上成功的 API 回應仍然直接覆蓋了整個 `$json` 物件。
+
+**原因**:
+`outputPropertyName` 設定在某些情況下可能無法正常運作（可能與 n8n 版本或節點配置有關）。HTTP Request 節點預設行為是將成功的回應直接替換為回應內容。
+
+**錯誤範例**:
+```json
+// ❌ 設定了 outputPropertyName 但沒有效果
+{
+  "parameters": {
+    "method": "GET",
+    "url": "=https://api.line.me/v2/bot/group/{{ $json.group_id }}/member/{{ $json.user_id }}",
+    "options": {
+      "response": {
+        "response": {
+          "responseFormat": "json",
+          "outputPropertyName": "api_response"
+        }
+      }
+    }
+  }
+}
+
+// 預期輸出:
+{
+  "user_id": "U123",
+  "group_id": "C456",
+  "api_response": {
+    "userId": "U123",
+    "displayName": "John"
+  }
+}
+
+// 實際輸出:
+{
+  "userId": "U123",
+  "displayName": "John"
+}
+// ❌ 原始的 user_id 和 group_id 被覆蓋了
+```
+
+**解決方案**:
+在 HTTP Request 節點後面加一個 Code 節點，手動合併原始資料和 API 回應。
+
+**正確範例**:
+```javascript
+// HTTP Request 節點：簡化設定，不使用 outputPropertyName
+{
+  "parameters": {
+    "method": "GET",
+    "url": "=https://api.line.me/v2/bot/group/{{ $json.group_id }}/member/{{ $json.user_id }}",
+    "options": {},
+    "continueOnFail": true
+  }
+}
+
+// 後續的 Code 節點：合併原始資料
+const items = $input.all();
+const originalItems = $('準備 API 資料').all();
+const results = [];
+
+for (let i = 0; i < items.length; i++) {
+  const currentData = items[i].json;  // HTTP 回應
+  const originalData = originalItems[i].json;  // 原始資料
+
+  if (currentData.error) {
+    // 失敗：保留原始資料 + error
+    results.push({
+      json: {
+        user_id: originalData.user_id,
+        group_id: originalData.group_id,
+        notion_page_id: originalData.notion_page_id,
+        error: currentData.error
+      }
+    });
+  } else {
+    // 成功：合併原始資料 + API 回應
+    results.push({
+      json: {
+        id: originalData.notion_page_id,
+        display_name: currentData.displayName,
+        user_id: originalData.user_id
+      }
+    });
+  }
+}
+
+return results;
+```
+
+**關鍵要點**:
+1. **移除 `outputPropertyName` 設定**：簡化 HTTP Request 配置
+2. **使用 Code 節點合併**：透過 `$('前置節點名稱').all()` 取得原始資料
+3. **批次處理**：使用索引配對 `items[i]` 和 `originalItems[i]`，確保資料對應正確
+4. **錯誤處理**：檢查 `currentData.error` 來判斷 API 是否成功（使用 `continueOnFail: true`）
+
+**適用場景**:
+- 需要保留上游節點的資料（如 user_id, notion_page_id）
+- 同時需要 API 回應的資料（如 displayName）
+- 批次處理多個 API 請求
+
+## 13. Code Node: 使用 `.item` 只能處理單個 item
+
+**錯誤現象**:
+當 HTTP Request 節點處理多個 items 時（如 5 個使用者），Code 節點使用 `$('前置節點').item` 只會處理第一個 item，導致其他 4 個 items 的資料遺失。
+
+**原因**:
+- `$('節點名稱').item`：只取得當前處理的單個 item（在 Run Once for Each Item 模式下）
+- `$('節點名稱').all()`：取得該節點的所有 items（陣列）
+
+當處理批次資料時，應該使用 `.all()` 取得所有 items，然後用索引配對。
+
+**錯誤範例**:
+```javascript
+// ❌ 只會處理第一個 item
+const originalItem = $('準備 API 資料').item;
+
+// Input: 5 個使用者
+// Output: 只有第 1 個使用者的資料，其他 4 個遺失
+
+if ($json.error) {
+  return {
+    json: {
+      user_id: originalItem.json.user_id,  // 永遠是第 1 個使用者
+      group_id: originalItem.json.group_id,
+      error: $json.error
+    }
+  };
+}
+```
+
+**正確範例**:
+```javascript
+// ✅ 處理所有 items
+const items = $input.all();  // 當前節點的所有 items
+const originalItems = $('準備 API 資料').all();  // 前置節點的所有 items
+const results = [];
+
+for (let i = 0; i < items.length; i++) {
+  const currentData = items[i].json;
+  const originalData = originalItems[i].json;  // 用索引配對
+
+  if (currentData.error) {
+    results.push({
+      json: {
+        user_id: originalData.user_id,
+        group_id: originalData.group_id,
+        error: currentData.error
+      }
+    });
+  } else {
+    results.push({
+      json: {
+        id: originalData.notion_page_id,
+        display_name: currentData.displayName
+      }
+    });
+  }
+}
+
+return results;
+```
+
+**特殊情況：訪問 IF 節點的特定分支**:
+```javascript
+// 從 IF 節點的 False 分支（index 1）取得資料
+const originalItems = $('檢查 Dobby API 是否成功', 1).all();
+
+// 參數說明：
+// - 第一個參數：節點名稱
+// - 第二個參數：分支索引（0 = True, 1 = False）
+```
+
+**關鍵要點**:
+1. **批次處理必須使用 `.all()`**：不要使用 `.item` 或 `.first()`
+2. **用索引配對資料**：`items[i]` 對應 `originalItems[i]`
+3. **返回陣列格式**：`return results;`（不是單個物件）
+4. **確保陣列長度一致**：HTTP Request 和原始資料的 items 數量應該相同
+
+**適用場景**:
+- 批次 API 呼叫後需要合併原始資料
+- 處理多個 items 的資料轉換
+- 需要保留上游節點的 context 資料
+
+## 14. IF Node: 不正確的 operator 參數配置
+
+**錯誤現象**:
+IF 節點的條件顯示紅色警告，或執行時出現 validation 錯誤。
+
+**原因**:
+使用了不正確或不支援的 operator 參數。例如：
+- 使用 `singleValue: true`（某些 operation 不需要此參數）
+- 使用 `operation: "exists"`（不是有效的 operation）
+- 缺少 `version: 2` 參數
+
+**錯誤範例**:
+```json
+// ❌ 使用了不支援的參數
+{
+  "parameters": {
+    "conditions": {
+      "options": {
+        "caseSensitive": true,
+        "leftValue": "",
+        "typeValidation": "strict"
+        // ❌ 缺少 version: 2
+      },
+      "conditions": [{
+        "leftValue": "={{ $json.display_name }}",
+        "operator": {
+          "type": "string",
+          "operation": "notEmpty",
+          "singleValue": true  // ❌ notEmpty 不需要此參數
+        }
+      }]
+    }
+  },
+  "type": "n8n-nodes-base.if",
+  "typeVersion": 2  // ❌ 應該是 2.2
+}
+```
+
+**正確範例**:
+```json
+// ✅ 正確的配置
+{
+  "parameters": {
+    "conditions": {
+      "options": {
+        "caseSensitive": true,
+        "leftValue": "",
+        "typeValidation": "strict",
+        "version": 2  // ✅ 必須加上 version
+      },
+      "conditions": [{
+        "id": "success-condition",
+        "leftValue": "={{ $json.display_name }}",
+        "rightValue": "",
+        "operator": {
+          "type": "string",
+          "operation": "notEmpty"  // ✅ 不需要額外參數
+        }
+      }],
+      "combinator": "and"
+    },
+    "options": {}
+  },
+  "type": "n8n-nodes-base.if",
+  "typeVersion": 2.2  // ✅ 使用 2.2 版本
+}
+```
+
+**常見 operation 配置**:
+
+| Operation | Type | 需要 rightValue | 額外參數 |
+|-----------|------|----------------|---------|
+| `notEmpty` | string | ❌ No | 無 |
+| `empty` | string/object | ❌ No | 無 |
+| `equals` | string/boolean/number | ✅ Yes | 無 |
+| `contains` | string | ✅ Yes | 無 |
+| `startsWith` | string | ✅ Yes | 無 |
+
+**IF 節點版本差異**:
+- `typeVersion: 2`: 較舊版本
+- `typeVersion: 2.2`: 當前推薦版本，功能更完整
+
+**檢查清單**:
+- ✅ `options` 中包含 `version: 2`
+- ✅ `typeVersion` 設為 `2.2`
+- ✅ `operation` 使用有效值（notEmpty, empty, equals 等）
+- ✅ 不要加上不必要的參數（如 singleValue）
+- ✅ 每個 condition 有唯一的 `id`
+
+**除錯方式**:
+1. 在 n8n UI 中創建一個新的 IF 節點
+2. 配置你想要的條件
+3. 匯出 workflow JSON
+4. 複製正確的 operator 配置
+
+**參考**: 參考 `Line bot.json` 中其他成功運作的 IF 節點配置。

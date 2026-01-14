@@ -174,6 +174,74 @@
 #### 3. Join Event (加入事件)
 當機器人被加入 `group` 或 `room` 時，會觸發 `取得歡迎訊息` 並回覆。
 
+#### 4. Batch Update User Display Names (批次更新使用者顯示名稱) (2026-01-14)
+獨立的手動觸發 workflow，用於批次更新 USERS 資料庫中所有使用者的 `Custom Name` 欄位。
+
+**觸發方式**: 手動點擊 `Manual Trigger (Push Test)` 節點
+
+**節點流程**:
+1. **取得可更新的使用者** (Notion Query):
+   - 查詢 USERS 資料庫
+   - 篩選條件: `groups` 欄位不為空（有加入群組的使用者）
+   - 輸出格式: Notion 簡化格式（`property_user_id`, `property_groups`, `id`）
+
+2. **準備 API 資料** (Code):
+   - 提取每個使用者的 `user_id`, `notion_page_id`, 以及第一個 `group_id`
+   - 輸出格式: `{ user_id, group_id, notion_page_id, original_data }`
+
+3. **呼叫 LINE API (Dobby)** (HTTP Request):
+   - 使用 Line Dobby credentials
+   - API: `GET https://api.line.me/v2/bot/group/{groupId}/member/{userId}`
+   - 設定 `continueOnFail: true` 以處理 404 錯誤
+
+4. **合併 Dobby API 結果** (Code):
+   - 遍歷所有 HTTP 回應，與原始資料配對
+   - 成功項目: 輸出 `{ id, display_name, user_id }` (Notion 更新格式)
+   - 失敗項目: 輸出 `{ user_id, group_id, notion_page_id, error }` (保留以便重試)
+
+5. **檢查 Dobby API 是否成功** (If):
+   - 條件: `display_name` 不為空
+   - True (成功) → 直接到「更新使用者 display_name」
+   - False (失敗) → 到「呼叫 LINE API (球來就打)」
+
+6. **呼叫 LINE API (球來就打)** (HTTP Request):
+   - 使用 Line 球來就打 credentials
+   - 對失敗的使用者重試同一個 API
+   - 設定 `continueOnFail: true`
+
+7. **合併球來就打 API 結果** (Code):
+   - 處理重試的 HTTP 回應
+   - 成功項目: 輸出 `{ id, display_name, user_id }` (Notion 更新格式)
+   - 失敗項目: 跳過（兩個 bot 都失敗，不更新）
+   - 使用 `$('檢查 Dobby API 是否成功', 1).all()` 取得 False 分支的原始資料
+
+8. **更新使用者 display_name** (Notion Update):
+   - 接收兩個分支的成功項目
+   - 批次更新 USERS 資料庫的 `Custom Name` 欄位
+
+**設計特點**:
+- **雙 Bot 策略**: 使用兩個不同的 LINE Bot credentials 最大化成功率
+- **並行更新**: 兩個分支都直接連接到 Notion Update 節點，提高效率
+- **容錯處理**: 使用 `continueOnFail` 確保部分失敗不影響整體執行
+- **資料完整性**: 只更新成功取得 displayName 的使用者
+
+**資料流**:
+```
+Notion USERS (有 groups 的使用者)
+  ↓
+準備 API 資料 (提取 user_id, group_id, notion_page_id)
+  ↓
+呼叫 LINE API (Dobby) → 合併結果 → IF 檢查
+  ├─ 成功 ─────────────────────┐
+  └─ 失敗 → LINE API (球來就打) ├─→ 更新 Notion Custom Name
+           → 合併結果 ───────────┘
+```
+
+**注意事項**:
+- 使用者必須在 `groups` 欄位中有群組 ID 才能被更新（因為 API 需要 groupId）
+- 如果使用者已離開群組，兩個 API 都會返回 404，該使用者不會被更新
+- `Custom Name` 欄位會被覆蓋為 LINE 上的最新 displayName
+
 ### Code Constants (Default Values)
 - **Default Courts**: `2` (metadata node)
 - **Default Price**: `170` (metadata node)
