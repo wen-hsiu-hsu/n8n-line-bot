@@ -2,7 +2,7 @@
 
 > **⚠️ Auto-Generated File**: 此檔案由 `scripts/update-notion-schema.js` 自動產生與更新。
 >
-> **最後更新時間**: 2026-01-18T08:18:19.180Z
+> **最後更新時間**: 2026-01-18T08:36:41.350Z
 
 此檔案記錄所有 Notion Database 的完整 schema（欄位定義、型別、選項等），供 AI 在開發新功能時參考。
 
@@ -61,7 +61,7 @@ NOTION_TOKEN=secret_your_notion_integration_token
 
 **Database ID**: `252f388d-4ac7-49a4-82ae-a7f18044f701`
 
-**最後更新**: 2026-01-18T08:18:17.125Z
+**最後更新**: 2026-01-18T08:36:39.087Z
 
 #### Properties
 
@@ -96,13 +96,15 @@ NOTION_TOKEN=secret_your_notion_integration_token
 
 ---
 
+---
+
 ### 2. 季租承租紀錄
 
 ### 季租承租紀錄
 
 **Database ID**: `7deede34-579d-4c77-b79b-20b9f4f000e7`
 
-**最後更新**: 2026-01-18T08:18:18.149Z
+**最後更新**: 2026-01-18T08:36:40.382Z
 
 #### Properties
 
@@ -153,13 +155,15 @@ NOTION_TOKEN=secret_your_notion_integration_token
 
 ---
 
+---
+
 ### 3. 行事曆
 
 ### 行事曆
 
 **Database ID**: `0fd76b77-9f07-4aa3-a3c9-12ba18dbe32e`
 
-**最後更新**: 2026-01-18T08:18:18.414Z
+**最後更新**: 2026-01-18T08:36:40.619Z
 
 #### Properties
 
@@ -198,8 +202,13 @@ NOTION_TOKEN=secret_your_notion_integration_token
   ]
 }</pre> |
 | `時間` | date | - |
-| `零打` | multi_select | - |
+| `零打` | relation | <pre>{
+  "database_id": "252f388d-4ac7-49a4-82ae-a7f18044f701",
+  "type": "single_property"
+}</pre> |
 | `名稱` | title | - |
+
+---
 
 ---
 
@@ -211,7 +220,7 @@ NOTION_TOKEN=secret_your_notion_integration_token
 
 **Database ID**: `2e24dbf2-e21c-80b7-83f6-ef99c1dd9425`
 
-**最後更新**: 2026-01-18T08:18:18.663Z
+**最後更新**: 2026-01-18T08:36:40.867Z
 
 > **注意**: 此 database 包含特殊 pages（`NEWS_TEMPLATE`, `PAYMENT`, `WELCOME_MESSAGE`），其內容儲存於 Child Blocks。
 
@@ -230,13 +239,15 @@ NOTION_TOKEN=secret_your_notion_integration_token
 
 ---
 
+---
+
 ### 5. TEXT_REPLY
 
 ### TEXT_REPLY
 
 **Database ID**: `2e34dbf2-e21c-8047-8ac5-fccfc5c02729`
 
-**最後更新**: 2026-01-18T08:18:18.931Z
+**最後更新**: 2026-01-18T08:36:41.100Z
 
 #### Properties
 
@@ -250,13 +261,15 @@ NOTION_TOKEN=secret_your_notion_integration_token
 
 ---
 
+---
+
 ### 6. USERS
 
 ### USERS
 
 **Database ID**: `2e44dbf2-e21c-80d1-af81-c3b61579b3bb`
 
-**最後更新**: 2026-01-18T08:18:19.179Z
+**最後更新**: 2026-01-18T08:36:41.350Z
 
 #### Properties
 
@@ -285,6 +298,8 @@ NOTION_TOKEN=secret_your_notion_integration_token
 | `Custom Name` | rich_text | - |
 | `multi-chat` | multi_select | - |
 | `user_id` | title | - |
+
+---
 
 ---
 
