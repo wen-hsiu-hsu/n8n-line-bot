@@ -5,7 +5,10 @@
 ## update-notion-schema.js
 
 ### 功能
-自動更新 Notion Database Schema 到 `docs/notion/database-schema.md`。
+自動更新 Notion Database Schema，產生以下檔案：
+- 每個 database 獨立的 JSON schema 檔案（`docs/notion/schemas/*.json`）
+- 索引檔案（`docs/notion/schemas/index.json`）
+- 導覽文件（`docs/notion/database-schema.md`）
 
 ### 環境需求
 - Node.js 18+ (使用內建 fetch API)
@@ -54,18 +57,46 @@ node scripts/update-notion-schema.js --db "USERS,TEXT_REPLY"
 
 成功執行：
 ```
-🚀 Starting Notion Database Schema Update...
+🚀 Starting Notion Database Schema Update (JSON Version)...
 
 ✅ Loaded NOTION_TOKEN from .env
 
-📊 Updating 1 database(s):
+📊 Updating 6 database(s):
 
+  • 人員清單 (People List)
+    ✅ Saved to people-list.json
   • USERS (USERS)
-    ✅ Updated successfully
+    ✅ Saved to users.json
+
+📑 Generating index.json...
+  ✅ Saved to index.json
+
+📝 Updating navigation file...
+  ✅ Updated database-schema.md
 
 ✨ Schema update completed!
 
-📄 Updated file: docs/notion/database-schema.md
+📂 Updated files:
+  - people-list.json
+  - users.json
+  - ...
+  - index.json
+  - database-schema.md
+```
+
+### 檔案結構
+
+更新後會產生以下檔案：
+```
+docs/notion/
+├── database-schema.md     # 導覽文件（Markdown）
+└── schemas/
+    ├── index.json         # 所有 databases 的索引
+    ├── users.json         # USERS database schema
+    ├── people-list.json   # 人員清單 schema
+    ├── calendar.json      # 行事曆 schema
+    ├── ...                # 其他 databases
+    └── all-announcements.json
 ```
 
 ### 常見錯誤

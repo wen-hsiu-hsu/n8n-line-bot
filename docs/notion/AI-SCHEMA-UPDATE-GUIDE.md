@@ -3,6 +3,17 @@
 > **目標讀者**: AI Assistant
 >
 > **用途**: 當 AI 需要了解 Notion database schema 時的操作指南
+>
+> **格式**: JSON（結構化、模組化、易於解析）
+
+---
+
+## ⚡ 為什麼使用 JSON 格式？
+
+1. **結構化資料**: JSON 格式易於 AI 精確解析，無需處理 Markdown 表格
+2. **Token 節省**: 每個 database 獨立檔案，AI 只讀取需要的部分
+3. **模組化**: 修改單一 database 不影響其他檔案
+4. **程式化處理**: 容易被程式讀取和處理
 
 ---
 
@@ -156,12 +167,24 @@ echo "請建立 .env 檔案並加入 NOTION_TOKEN=secret_your_token"
 
 ## 與其他文件的關係
 
-### 1. database-schema.md（此腳本的輸出）
+### 1. docs/notion/schemas/*.json（JSON Schema 檔案）
 - **內容**: 自動產生的 schema 定義（欄位名稱、型別、設定）
+- **格式**: JSON（結構化、易解析）
+- **檔案結構**:
+  - `index.json`: 所有 databases 的索引
+  - `users.json`: USERS database 的完整 schema
+  - `people-list.json`: 人員清單 database 的完整 schema
+  - ...（每個 database 一個檔案）
 - **用途**: AI 在開發時參考，確保使用正確的欄位名稱與型別
 - **更新頻率**: 視需求更新（開發前、發現不符時）
 
-### 2. docs/project/context.md（商業邏輯與常數）
+### 2. docs/notion/database-schema.md（導覽文件）
+- **內容**: 導覽所有 JSON schema 檔案的入口
+- **格式**: Markdown（方便閱讀）
+- **用途**: 提供概覽、連結到各個 JSON 檔案
+- **更新頻率**: 與 JSON 檔案同步更新（由腳本自動產生）
+
+### 3. docs/project/context.md（商業邏輯與常數）
 - **內容**:
   - Database 的**用途**與**商業邏輯**（如「USERS 用於追蹤使用者」）
   - System Constants（如 Manager ID、Commands 列表）
@@ -169,16 +192,17 @@ echo "請建立 .env 檔案並加入 NOTION_TOKEN=secret_your_token"
 - **用途**: AI 理解「為什麼這樣設計」、「資料如何流動」
 - **更新頻率**: 當商業邏輯變更時（如新增 Command、修改事件處理流程）
 
-### 3. 兩者的分工
-| 面向 | database-schema.md | context.md |
-|------|-------------------|------------|
-| Database ID | ✅ 有 | ✅ 有（可移除） |
-| 欄位名稱與型別 | ✅ 完整詳細 | ⚠️ 簡略（應移除） |
-| Select Options | ✅ 有 | ❌ 無 |
-| Relation Target | ✅ 有 | ❌ 無 |
-| 商業邏輯 | ❌ 無 | ✅ 有 |
-| Event Handlers | ❌ 無 | ✅ 有 |
-| Commands 定義 | ❌ 無 | ✅ 有 |
+### 4. 三者的分工
+| 面向 | schemas/*.json | database-schema.md | context.md |
+|------|---------------|-------------------|------------|
+| Database ID | ✅ 有 | ✅ 有（導覽） | ✅ 有（索引） |
+| 欄位名稱與型別 | ✅ 完整詳細（JSON） | ❌ 無（僅連結） | ❌ 無 |
+| Select Options | ✅ 有 | ❌ 無 | ❌ 無 |
+| Relation Target | ✅ 有 | ❌ 無 | ❌ 無 |
+| Formula Expression | ✅ 有 | ❌ 無 | ❌ 無 |
+| 商業邏輯 | ❌ 無 | ❌ 無 | ✅ 有 |
+| Event Handlers | ❌ 無 | ❌ 無 | ✅ 有 |
+| Commands 定義 | ❌ 無 | ❌ 無 | ✅ 有 |
 
 ---
 
@@ -191,19 +215,23 @@ echo "請建立 .env 檔案並加入 NOTION_TOKEN=secret_your_token"
 node scripts/update-notion-schema.js --db "USERS"
 ```
 
-#### Step 2: 讀取文件
+#### Step 2: 讀取 Schema JSON
 ```bash
-# 讀取 schema（技術面）
-Read docs/notion/database-schema.md
+# 讀取 USERS database schema（JSON 格式）
+Read docs/notion/schemas/users.json
 
 # 讀取 context（商業邏輯面）
 Read docs/project/context.md
+
+# 查看所有可用的 databases（可選）
+Read docs/notion/schemas/index.json
 ```
 
 #### Step 3: 分析需求
-- **從 database-schema.md 確認**:
+- **從 users.json確認**:
   - `USERS` 有 `message_counts` 欄位嗎？型別是 `number` 嗎？
-  - `USERS` 有 `is_admin` 欄位嗎？用來檢查權限？
+  - `USERS` 有 `is_admin` 欄位嗎？型別是 `checkbox` 嗎？
+  - 欄位的 `config` 包含什麼設定？（如 number format、relation target）
 
 - **從 context.md 確認**:
   - Admin Checking 的流程是什麼？（動態查詢 vs 硬編碼）
@@ -240,10 +268,16 @@ Read docs/project/context.md
 2. 回報給使用者，請使用者檢查環境設定
 3. **不要**嘗試修改 token 或硬編碼任何敏感資料
 
-### Q4: database-schema.md 和 context.md 內容重複了怎麼辦？
-**A**: 這正是接下來要重構的部分。未來：
-- `database-schema.md`：純技術面（欄位、型別）
-- `context.md`：純邏輯面（用途、流程、常數）
+### Q4: JSON 檔案和 Markdown 檔案有什麼差別？
+**A**:
+- **JSON 檔案** (`schemas/*.json`): 結構化的 schema 資料，AI 讀取這個來取得欄位定義
+- **Markdown 檔案** (`database-schema.md`): 導覽文件，幫助使用者瀏覽與理解，但 AI 應該讀取 JSON 檔案而非 Markdown
+
+### Q5: 為什麼要模組化（每個 database 一個檔案）？
+**A**:
+- **Token 節省**: AI 只需讀取需要的 database schema，不用讀取所有內容
+- **平行開發**: 修改不同 database 不會產生 git conflict
+- **清晰度**: 每個檔案專注於一個 database，更容易理解
 
 ---
 
@@ -251,11 +285,14 @@ Read docs/project/context.md
 
 **AI 的職責**:
 1. ✅ 主動在需要時執行 `node scripts/update-notion-schema.js`
-2. ✅ 根據最新 schema 開發功能
-3. ✅ 維護 `context.md` 的商業邏輯部分
-4. ❌ **不要**直接讀取或顯示 `.env` 內容
-5. ❌ **不要**手動編輯 `database-schema.md` 的 schema 部分（應由腳本產生）
+2. ✅ **讀取 JSON 檔案**（`docs/notion/schemas/*.json`）而非 Markdown
+3. ✅ 根據最新 JSON schema 開發功能
+4. ✅ 維護 `context.md` 的商業邏輯部分
+5. ❌ **不要**直接讀取或顯示 `.env` 內容
+6. ❌ **不要**手動編輯 JSON schema 檔案（應由腳本產生）
+7. ❌ **不要**手動編輯 `database-schema.md`（應由腳本產生）
 
 **檔案職責分工**:
-- `database-schema.md`（自動產生）：What fields exist? What are their types?
+- `schemas/*.json`（自動產生）：What fields exist? What are their types? (AI 讀這個)
+- `database-schema.md`（自動產生）：Navigation and overview (使用者讀這個)
 - `context.md`（人工維護）：Why do we use these fields? How does the data flow?

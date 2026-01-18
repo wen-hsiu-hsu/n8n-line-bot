@@ -20,8 +20,13 @@
 - **封存資料**: `archive-n8n-docs-repo.md` (原始龐大文件，除非 `concepts.md` 資訊不足，否則**不要讀取**)
 
 ### 3. Notion API 相關 (`docs/notion/`)
-- **Database Schema** (自動產生):
-  - `database-schema.md`: 所有 Notion Database 的欄位定義、型別、設定（**由腳本自動更新，不要手動編輯**）
+- **Database Schema** (JSON 格式，自動產生):
+  - `schemas/*.json`: **每個 database 獨立的 JSON schema 檔案**（AI 讀這個！）
+    - `index.json`: 所有 databases 的索引
+    - `users.json`: USERS database schema
+    - `people-list.json`: 人員清單 schema
+    - ...（每個 database 一個檔案）
+  - `database-schema.md`: 導覽文件（使用者讀這個，AI 不需要讀）
   - `AI-SCHEMA-UPDATE-GUIDE.md`: AI 如何更新 schema 的完整指南（**開發 Notion 相關功能前必讀**）
   - **更新指令**: `node scripts/update-notion-schema.js` (詳見 `scripts/README.md`)
 - **Block API**:
@@ -29,6 +34,7 @@
   - `3-text-blocks.md`, `4-list-blocks.md`, `5-media-blocks.md`, `6-structural-blocks.md`
 - **使用時機**:
   - 開發涉及 Notion 的新功能**之前**，執行 schema 更新腳本
+  - **讀取 JSON schema 檔案**（如 `docs/notion/schemas/users.json`）取得欄位定義
   - 處理 Notion Block Children 或公告內容時讀取 Block API 文件
 
 ### 4. 專案背景 (`docs/project/`)
@@ -49,7 +55,9 @@
    - **Notion Schema 更新**:
      - 開發涉及 Notion 的新功能**之前**，執行 `node scripts/update-notion-schema.js` 更新 schema
      - 使用者提到「我在 Notion 新增了欄位」時，**立即**執行 schema 更新腳本
-     - **不要**手動編輯 `docs/notion/database-schema.md` 的 schema 部分
+     - **不要**手動編輯 `docs/notion/schemas/*.json` 檔案（由腳本自動產生）
+     - **不要**手動編輯 `docs/notion/database-schema.md`（由腳本自動產生）
+     - **讀取時優先使用 JSON**：開發時讀取 `docs/notion/schemas/*.json`，不要讀取 `database-schema.md`
    - **商業邏輯維護**:
      - `docs/project/context.md` 記錄商業邏輯，與 `Line bot.json` 保持同步
      - 新增 Command、修改 Event Handler 流程時，**必須**更新 `context.md`
