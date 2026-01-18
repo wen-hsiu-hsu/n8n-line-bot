@@ -20,17 +20,22 @@
 - **封存資料**: `archive-n8n-docs-repo.md` (原始龐大文件，除非 `concepts.md` 資訊不足，否則**不要讀取**)
 
 ### 3. Notion API 相關 (`docs/notion/`)
-- **核心與結構**: `2-block-base.md` (必讀), `1-block-structure.md` (n8n 簡化版)
-- **Block 類型**: 
-  - `3-text-blocks.md` (Paragraph, Heading, Callout, Quote)
-  - `4-list-blocks.md` (Bulleted, ToDo, Toggle)
-  - `5-media-blocks.md` (Image, File, Embed)
-  - `6-structural-blocks.md` (Divider, Table of Contents)
-- **使用時機**: 當需要處理 Notion Block Children 或公告內容時讀取。
+- **Database Schema** (自動產生):
+  - `database-schema.md`: 所有 Notion Database 的欄位定義、型別、設定（**由腳本自動更新，不要手動編輯**）
+  - `AI-SCHEMA-UPDATE-GUIDE.md`: AI 如何更新 schema 的完整指南（**開發 Notion 相關功能前必讀**）
+  - **更新指令**: `node scripts/update-notion-schema.js` (詳見 `scripts/README.md`)
+- **Block API**:
+  - `2-block-base.md` (必讀), `1-block-structure.md` (n8n 簡化版)
+  - `3-text-blocks.md`, `4-list-blocks.md`, `5-media-blocks.md`, `6-structural-blocks.md`
+- **使用時機**:
+  - 開發涉及 Notion 的新功能**之前**，執行 schema 更新腳本
+  - 處理 Notion Block Children 或公告內容時讀取 Block API 文件
 
 ### 4. 專案背景 (`docs/project/`)
-- **上下文**: `context.md` (記錄資料庫 Schema、常數、ID)
-- **使用時機**: 當 JSON 中出現看不懂的 ID 或邏輯，或需要新增資料庫欄位時讀取。
+- **上下文**: `context.md` (記錄**商業邏輯**、資料流程、常數)
+  - **不再包含**: Database 欄位定義（已移至 `docs/notion/database-schema.md`）
+  - **僅包含**: Database 用途說明、Event Handlers 流程、Commands 列表、System Constants
+- **使用時機**: 當需要理解「為什麼這樣設計」、「資料如何流動」、「有哪些指令」時讀取。
 
 ---
 
@@ -41,8 +46,14 @@
    - 修正 Bug 前，先檢查 `docs/n8n/common-errors.md` 是否已有案例。
 
 2. **文件維護 (Documentation Maintenance)**:
-   - **同步原則**: `docs/project/context.md` 必須與 `Line bot.json` 同步，當 `Line bot.json` 有更新時，需要確保 `docs/project/context.md` 有更新。
-   - **新增知識**: 若發現新的資料庫欄位或商業邏輯，**必須**更新 `docs/project/context.md`。
+   - **Notion Schema 更新**:
+     - 開發涉及 Notion 的新功能**之前**，執行 `node scripts/update-notion-schema.js` 更新 schema
+     - 使用者提到「我在 Notion 新增了欄位」時，**立即**執行 schema 更新腳本
+     - **不要**手動編輯 `docs/notion/database-schema.md` 的 schema 部分
+   - **商業邏輯維護**:
+     - `docs/project/context.md` 記錄商業邏輯，與 `Line bot.json` 保持同步
+     - 新增 Command、修改 Event Handler 流程時，**必須**更新 `context.md`
+     - **不要**在 `context.md` 記錄 database 欄位定義（改用 schema 更新腳本）
    - **錯誤收錄**: 修復棘手 Bug 後，**主動詢問**是否收錄至 `docs/n8n/common-errors.md`。
 
 3. **預設目標**:

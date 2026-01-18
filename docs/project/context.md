@@ -1,74 +1,61 @@
 # Project Context
 
-此檔案記錄無法單純從代碼中完全推斷的專案背景資訊，包含資料庫定義、Schema 與常數設定。
+此檔案記錄無法單純從代碼中完全推斷的專案背景資訊，包含**商業邏輯**、**資料流程**與**常數設定**。
 
-## Notion Databases
+> **📊 Database Schema 參考**:
+> - 詳細的 database 欄位定義（Property names, types, configurations）請參考 `docs/notion/database-schema.md`
+> - 如何更新 schema 請參考 `docs/notion/AI-SCHEMA-UPDATE-GUIDE.md`
+
+---
+
+## Notion Databases (Business Logic)
+
+> [!NOTE]
+> 詳細欄位定義、型別與 Schema 已移至 [database-schema.md](file:///Users/shiu/Documents/repos/n8n-line-bot/docs/notion/database-schema.md)。此處僅記錄各資料庫的用途與關鍵連結邏輯。
 
 ### 1. 人員清單 (People List)
-- **ID**: `252f388d-4ac7-49a4-82ae-a7f18044f701`
-- **已知欄位 (Properties)**:
-  - `Name` (Title): 成員姓名 (或 `name` 屬性)
-  - `結清` (Checkbox): 繳費狀態
+- **用途**: 成員管理中心，記錄所有球員的姓名、繳費狀態與聯繫方式。
+- **關鍵關聯**: 與 `USERS` 連結，將 LINE 使用者與 Notion 球員資料配對。
 
 ### 2. 季租承租紀錄 (Season Rental Record)
-- **ID**: `7deede34-579d-4c77-b79b-20b9f4f000e7`
-- **已知欄位 (Properties)**:
-  - `季租時段` (Title): 季度名稱 (e.g., "2025-Q1")
-  - `報名人` (Relation): 關聯至「人員清單」
-  - `零打費用` (Number)
-  - `報名人數` (Formula)
-  - `每人平均場租` (Formula)
-  - `場租總金額` (Formula)
-  - `場地數` (Number)
-  - `地點` (Rich Text)
-  - `打球日` (Relation): 關聯至「行事曆」
+- **用途**: 記錄每一季（如 2025-Q1）的租借合約、場地數、固定報名名單、場租總額與零打定價。
+- **關鍵關聯**: 透過「報名人」關聯至「人員清單」來定義該季的固定成員。
 
 ### 3. 行事曆 (Calendar)
-- **ID**: `0fd76b77-9f07-4aa3-a3c9-12ba18dbe32e`
-- **已知欄位 (Properties)**:
-  - `季度` (Relation): 關聯至「季租承租紀錄」
-  - `時間` (Date): 打球日期
-  - `類型` (Select): e.g., "暫停"
-  - `場地數` (Number): 該次活動的場地數量 override
-  - `請假人` (Relation)
+- **用途**: 追蹤每週打球活動。包含日期、場地數變動、類型（打球/暫停）、請假名單與零打名額。
+- **關鍵欄位**:
+  - `請假人`: (Relation) 指向「人員清單」。
+  - `零打`: (Multi-select) 記錄當週補位球員名單。
 
 ### 4. 所有公告 (All Announcements)
-- **ID**: `2e24dbf2-e21c-80b7-83f6-ef99c1dd9425`
-- **已知內容 (Pages)**:
-  - `NEWS_TEMPLATE`: 公告模板，內容儲存於其 Child Blocks。
-  - `PAYMENT`: 付款資訊，內容儲存於其 Child Blocks。
-  - `WELCOME_MESSAGE`: 歡迎訊息，當機器人被加入群組/聊天室時自動發送。
-    - **支援的 Placeholder**:
-      - `{NEW_FRIEND}`: 自動替換為加入群組的新成員（使用 LINE textV2 mention）
-      - `{MANAGER}`: 自動替換為管理員（User ID: `U2a0a2c5054c4fa12b78a1d059411e39c`）
-    - **實現方式**: 使用 LINE Messaging API **Text Message v2** 格式
-      - `type: "textV2"`
-      - 使用 `substitution` 物件定義 placeholder 的 mention 替換
+- **用途**: 儲存公告模板（如 `NEWS_TEMPLATE`, `PAYMENT`, `WELCOME_MESSAGE`），供 n8n 抓取內容並動態替換 Placeholder。
+
+#### WELCOME_MESSAGE Placeholder 規則
+當機器人被加入群組/聊天室時，會自動發送 `WELCOME_MESSAGE`，並替換以下 placeholders：
+
+- `{NEW_FRIEND}`: 自動替換為加入群組的新成員（使用 LINE textV2 mention）
+- `{MANAGER}`: 自動替換為管理員（動態查詢 USERS 資料庫中 `is_admin = true` 的使用者）
+
+**實現方式**: 使用 LINE Messaging API **Text Message v2** 格式
+- `type: "textV2"`
+- 使用 `substitution` 物件定義 placeholder 的 mention 替換
 
 ### 5. TEXT_REPLY (自動回覆)
-- **ID**: `2e34dbf2-e21c-8047-8ac5-fccfc5c02729`
-- **用途**: 當使用者的文字訊息「包含」任一 `name` 時，自動回覆對應的 `property_reply`
-- **已知欄位 (Properties)**:
-  - `name` (Title): 觸發關鍵字
-  - `property_reply` (Text): 對應的回覆訊息
-  - `property_message` (Text): 觸發訊息（與 name 相同）
-  - `property_created` (Date): 建立時間
+- **用途**: 根據關鍵字觸發自動回覆訊息。
+- **觸發邏輯**: 字串包含匹配（不區分大小寫）
 
 ### 6. USERS (使用者資料庫)
-- **ID**: `2e44dbf2-e21c-80d1-af81-c3b61579b3bb`
-- **用途**: 追蹤與機器人互動的所有使用者，記錄訊息數量與所在群組/聊天室
-- **已知欄位 (Properties)**:
-  - `user_id` (Title): LINE User ID（唯一識別碼）
-  - `is_admin` (Checkbox): 是否為管理員（預設: `false`）
-  - `message_counts` (Number): 使用者累積發送的訊息數量
-  - `Custom Name` (Rich Text): 使用者名稱（由子工作流自動更新）
-  - `groups` (Multi-select): 使用者所在的所有群組 ID 列表（來自 `source.groupId`）
-  - `multi-chat` (Multi-select): 使用者所在的所有聊天室 ID 列表（來自 `source.roomId`）
+- **用途**: 追蹤所有 LINE 互動使用者，管理權限（`is_admin`）與累積訊息量。
 - **資料來源對應**:
-  - 群組訊息（`source.type = "group"`）→ 更新 `groups` 欄位
-  - 聊天室訊息（`source.type = "room"`）→ 更新 `multi-chat` 欄位
+  - 群組訊息（`source.type = "group"`）→ 更新 `groups` 欄位（Multi-select）
+  - 聊天室訊息（`source.type = "room"`）→ 更新 `multi-chat` 欄位（Multi-select）
   - 私訊（`source.type = "user"`）→ 兩個欄位都不更新
+- **關鍵關聯**: `Registered name` (Relation) 用於確認該 LINE 使用者是否為「人員清單」中的正式球員。
+- **自動更新欄位**:
+  - `Custom Name`: 由子工作流透過 LINE API 取得 displayName 並更新
+  - `message_counts`: 每次使用者發送訊息時自動 +1
 
+---
 
 ## System Constants
 
