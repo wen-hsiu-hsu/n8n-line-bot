@@ -2,7 +2,7 @@
 
 > **⚠️ Auto-Generated File**: 此檔案為導覽文件，實際 schema 資料儲存在 JSON 檔案中。
 >
-> **最後更新時間**: 2026-01-18T09:02:25.975Z
+> **最後更新時間**: 2026-01-18T14:54:26.665Z
 
 此檔案提供所有 Notion Database Schema 的導覽。每個 database 的詳細 schema 儲存在獨立的 JSON 檔案中。
 

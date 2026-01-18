@@ -3,7 +3,7 @@
   "name": "所有公告",
   "name_en": "All Announcements",
   "purpose": "儲存公告模板與歡迎訊息的 Child Blocks",
-  "last_updated": "2026-01-18T08:54:20.115Z",
+  "last_updated": "2026-01-18T14:54:26.024Z",
   "properties": {
     "季度": {
       "type": "relation",

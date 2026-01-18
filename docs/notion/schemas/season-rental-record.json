@@ -3,7 +3,7 @@
   "name": "季租承租紀錄",
   "name_en": "Season Rental Record",
   "purpose": "記錄每季的場地承租資訊、報名人數、費用計算",
-  "last_updated": "2026-01-18T08:54:19.608Z",
+  "last_updated": "2026-01-18T14:54:25.072Z",
   "properties": {
     "備註": {
       "type": "rich_text",

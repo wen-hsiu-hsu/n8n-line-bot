@@ -3,7 +3,7 @@
   "name": "USERS",
   "name_en": "USERS",
   "purpose": "使用者追蹤",
-  "last_updated": "2026-01-18T08:54:23.606Z",
+  "last_updated": "2026-01-18T14:54:26.663Z",
   "properties": {
     "is_admin": {
       "type": "checkbox",
@@ -20,6 +20,10 @@
           {
             "name": "C9fb61df21d9118e77d6e3065716fc08a",
             "color": "yellow"
+          },
+          {
+            "name": "Cf231a0c7452e80d80335bf981a77fcf8",
+            "color": "brown"
           }
         ]
       }

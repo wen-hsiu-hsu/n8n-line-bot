@@ -3,7 +3,7 @@
   "name": "人員清單",
   "name_en": "People List",
   "purpose": "管理羽球社團成員名單，追蹤繳費狀態",
-  "last_updated": "2026-01-18T08:54:19.341Z",
+  "last_updated": "2026-01-18T14:54:24.757Z",
   "properties": {
     "報名季度": {
       "type": "relation",

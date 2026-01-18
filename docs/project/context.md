@@ -42,7 +42,7 @@
 
 ### 5. TEXT_REPLY (自動回覆)
 - **用途**: 根據關鍵字觸發自動回覆訊息。
-- **觸發邏輯**: 字串包含匹配（不區分大小寫）
+- **觸發邏輯**: 字串包含匹配（**區分大小寫**，`Line bot.json` 中直接使用 `includes()` 且未轉小寫）
 
 ### 6. USERS (使用者資料庫)
 - **用途**: 追蹤所有 LINE 互動使用者，管理權限（`is_admin`）與累積訊息量。
@@ -69,8 +69,14 @@
 - `!command` / `！指令`: 查詢指令列表
 - `!participants` / `!people` / `！報名人`: 查詢季度報名人 (可選參數: `e.g. !participants 2025-Q1`)
 - `!next` (Admin only): 下一次通知
-- `!news` / `!announcement` / `！公告`: 查詢最新公告
-- `!payment` / `！付款`: 查詢付款資訊
+- `!news` / `！公告`: 查詢最新公告
+- `!payment` / `！付款`: 查詢付款資訊 (支援顯示 bulleted list 項目)
+- `@Dobby +1`: 報名零打（自己）。如果是季租球員，則報名一個「朋友」。
+- `@Dobby +2`: 報名兩個零打。
+- `@Dobby -1`: 取消報名。
+- `@Dobby 假`: 季租球員請假。
+- `@Dobby 銷假`: 季租球員取消請假。
+- `@Dobby {Name} {Command}`: (管理員) 代他人操作（支持 `@mention` 或自定義名稱）。
 
 ### Event Handlers
 

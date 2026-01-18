@@ -15,7 +15,7 @@
 - **使用時機**: 當需要查詢特定 LINE API 格式或 webhook 事件結構時，僅讀取對應檔案。開發前必須先讀取相關的 webhook 範例以了解完整結構。
 
 ### 2. n8n 相關 (`docs/n8n/`)
-- **核心概念**: `n8n-concepts.md` (包含 Workflow JSON 結構範例、API 驗證)
+- **核心概念**: `n8n-concepts.md` (**必讀**，包含 Workflow JSON 結構範例、API 驗證)
 - **常見錯誤**: `common-errors.md` (開發前必讀，包含 Luxon、換行轉義等雷點)
 - **封存資料**: `archive-n8n-docs-repo.md` (原始龐大文件，除非 `concepts.md` 資訊不足，否則**不要讀取**)
 
