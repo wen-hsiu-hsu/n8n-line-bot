@@ -13,7 +13,7 @@
       "typeVersion": 2,
       "position": [
         -4752,
-        44808
+        44816
       ],
       "webhookId": "6ffc18b9-7e3e-464a-9572-f35473e52d4d"
     },
@@ -47,7 +47,7 @@
       "typeVersion": 2.2,
       "position": [
         -4304,
-        44808
+        44816
       ]
     },
     {
@@ -71,7 +71,7 @@
       "typeVersion": 2.2,
       "position": [
         -1392,
-        44424
+        44432
       ],
       "credentials": {
         "notionApi": {
@@ -90,7 +90,7 @@
       "typeVersion": 2,
       "position": [
         -1168,
-        44424
+        44432
       ]
     },
     {
@@ -103,7 +103,7 @@
       "typeVersion": 2,
       "position": [
         -1840,
-        43848
+        43856
       ]
     },
     {
@@ -116,7 +116,7 @@
       "typeVersion": 2,
       "position": [
         -1840,
-        44040
+        44048
       ]
     },
     {
@@ -129,7 +129,7 @@
       "typeVersion": 2,
       "position": [
         -1616,
-        44232
+        44240
       ]
     },
     {
@@ -140,7 +140,7 @@
       "typeVersion": 2,
       "position": [
         -1616,
-        44040
+        44048
       ]
     },
     {
@@ -151,7 +151,7 @@
       "typeVersion": 2,
       "position": [
         -1392,
-        44232
+        44240
       ]
     },
     {
@@ -165,7 +165,7 @@
       "typeVersion": 1,
       "position": [
         -4528,
-        44808
+        44816
       ]
     },
     {
@@ -178,7 +178,7 @@
       "typeVersion": 2,
       "position": [
         -944,
-        45096
+        45104
       ]
     },
     {
@@ -211,7 +211,7 @@
       "typeVersion": 2.2,
       "position": [
         -1840,
-        45384
+        45392
       ],
       "credentials": {
         "notionApi": {
@@ -231,7 +231,7 @@
       "typeVersion": 2,
       "position": [
         -2064,
-        45384
+        45392
       ]
     },
     {
@@ -264,7 +264,7 @@
       "typeVersion": 2.2,
       "position": [
         -2960,
-        45000
+        45008
       ]
     },
     {
@@ -305,7 +305,7 @@
       "typeVersion": 3.2,
       "position": [
         -2288,
-        45384
+        45392
       ]
     },
     {
@@ -319,7 +319,7 @@
       "typeVersion": 2,
       "position": [
         -1616,
-        44424
+        44432
       ]
     },
     {
@@ -361,7 +361,7 @@
       "typeVersion": 2.2,
       "position": [
         -3632,
-        45096
+        45104
       ]
     },
     {
@@ -503,7 +503,7 @@
       "typeVersion": 3.2,
       "position": [
         -2736,
-        44568
+        44576
       ]
     },
     {
@@ -516,7 +516,7 @@
       "typeVersion": 2,
       "position": [
         -1168,
-        44616
+        44624
       ]
     },
     {
@@ -541,7 +541,7 @@
       "typeVersion": 2.2,
       "position": [
         -1616,
-        45192
+        45200
       ],
       "credentials": {
         "notionApi": {
@@ -560,7 +560,7 @@
       "typeVersion": 2,
       "position": [
         -1168,
-        45384
+        45392
       ]
     },
     {
@@ -574,7 +574,7 @@
       "typeVersion": 2,
       "position": [
         -1840,
-        45000
+        45008
       ]
     },
     {
@@ -607,7 +607,7 @@
       "typeVersion": 2.2,
       "position": [
         -1616,
-        45000
+        45008
       ],
       "credentials": {
         "notionApi": {
@@ -638,7 +638,7 @@
       "typeVersion": 2.2,
       "position": [
         -1392,
-        45000
+        45008
       ],
       "credentials": {
         "notionApi": {
@@ -657,7 +657,7 @@
       "typeVersion": 2,
       "position": [
         -1168,
-        45000
+        45008
       ]
     },
     {
@@ -682,7 +682,7 @@
       "typeVersion": 2.2,
       "position": [
         -1616,
-        45384
+        45392
       ],
       "credentials": {
         "notionApi": {
@@ -699,7 +699,7 @@
       "typeVersion": 2,
       "position": [
         -1392,
-        45384
+        45392
       ]
     },
     {
@@ -731,7 +731,7 @@
       "typeVersion": 2.2,
       "position": [
         -2064,
-        44232
+        44240
       ],
       "credentials": {
         "notionApi": {
@@ -758,7 +758,7 @@
       "typeVersion": 2.2,
       "position": [
         -1840,
-        44232
+        44240
       ],
       "credentials": {
         "notionApi": {
@@ -776,7 +776,7 @@
       "typeVersion": 2,
       "position": [
         -1168,
-        44232
+        44240
       ],
       "id": "ccd249a0-5134-476b-acf6-97b41ee8dde0"
     },
@@ -791,7 +791,7 @@
       "typeVersion": 2,
       "position": [
         -2512,
-        44136
+        44144
       ]
     },
     {
@@ -822,7 +822,7 @@
       "typeVersion": 2.2,
       "position": [
         -2288,
-        43848
+        43856
       ],
       "credentials": {
         "notionApi": {
@@ -862,7 +862,7 @@
       "typeVersion": 2.2,
       "position": [
         -2064,
-        43848
+        43856
       ],
       "alwaysOutputData": false,
       "credentials": {
@@ -894,7 +894,7 @@
       "typeVersion": 2.2,
       "position": [
         -2064,
-        44040
+        44048
       ],
       "credentials": {
         "notionApi": {
@@ -932,7 +932,7 @@
       "typeVersion": 2.2,
       "position": [
         -1616,
-        44808
+        44816
       ],
       "credentials": {
         "notionApi": {
@@ -959,7 +959,7 @@
       "typeVersion": 2.2,
       "position": [
         -1392,
-        44808
+        44816
       ],
       "credentials": {
         "notionApi": {
@@ -978,7 +978,7 @@
       "typeVersion": 2,
       "position": [
         -1168,
-        44808
+        44816
       ]
     },
     {
@@ -1000,7 +1000,7 @@
       "typeVersion": 2.2,
       "position": [
         -1392,
-        45576
+        45584
       ],
       "credentials": {
         "notionApi": {
@@ -1019,7 +1019,7 @@
       "typeVersion": 2,
       "position": [
         -1168,
-        45576
+        45584
       ]
     },
     {
@@ -1053,7 +1053,7 @@
       "typeVersion": 4.2,
       "position": [
         -496,
-        45192
+        45200
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -1097,7 +1097,7 @@
       "typeVersion": 4.2,
       "position": [
         -496,
-        45000
+        45008
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -1140,7 +1140,7 @@
       "typeVersion": 2.2,
       "position": [
         -720,
-        45096
+        45104
       ]
     },
     {
@@ -1172,7 +1172,7 @@
       "typeVersion": 2.2,
       "position": [
         -1616,
-        45768
+        45776
       ],
       "credentials": {
         "notionApi": {
@@ -1199,7 +1199,7 @@
       "typeVersion": 2.2,
       "position": [
         -1392,
-        45768
+        45776
       ],
       "credentials": {
         "notionApi": {
@@ -1234,7 +1234,7 @@
       "typeVersion": 1,
       "position": [
         -3856,
-        45160
+        45168
       ]
     },
     {
@@ -1276,7 +1276,7 @@
       "typeVersion": 2.2,
       "position": [
         -1840,
-        45768
+        45776
       ]
     },
     {
@@ -1289,7 +1289,7 @@
       "typeVersion": 2,
       "position": [
         -1168,
-        45768
+        45776
       ]
     },
     {
@@ -1322,7 +1322,7 @@
       "typeVersion": 2.2,
       "position": [
         -3856,
-        43848
+        43856
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -1353,7 +1353,7 @@
             },
             {
               "key": "message_counts|number",
-              "numberValue": 1
+              "numberValue": "={{ \n(() => {\n  if ($('Check User Source').item.json.type === 'message') {\n    return 1\n  }\n  else {\n    return 0\n  }\n})()\n}}"
             },
             {
               "key": "Custom Name|rich_text"
@@ -1376,7 +1376,7 @@
       "typeVersion": 2.2,
       "position": [
         -2960,
-        44040
+        44048
       ],
       "credentials": {
         "notionApi": {
@@ -1415,7 +1415,7 @@
       "typeVersion": 2.2,
       "position": [
         -4080,
-        44808
+        44816
       ]
     },
     {
@@ -1429,7 +1429,7 @@
       "typeVersion": 2,
       "position": [
         -3632,
-        43848
+        43856
       ]
     },
     {
@@ -1462,7 +1462,7 @@
       "typeVersion": 2.2,
       "position": [
         -3408,
-        43848
+        43856
       ]
     },
     {
@@ -1476,7 +1476,7 @@
       "typeVersion": 2,
       "position": [
         -3184,
-        43848
+        43856
       ]
     },
     {
@@ -1492,7 +1492,7 @@
           "propertyValues": [
             {
               "key": "message_counts|number",
-              "numberValue": "={{ $json.currentMessageCount + 1 }}"
+              "numberValue": "={{ \n(() => {\n  if ($('Check User Source').item.json.type === 'message') {\n    return $json.currentMessageCount + 1\n  }\n  else {\n    return $json.currentMessageCount\n  }\n})()\n}}"
             },
             {
               "key": "groups|multi_select",
@@ -1512,7 +1512,7 @@
       "typeVersion": 2.2,
       "position": [
         -2960,
-        43848
+        43856
       ],
       "credentials": {
         "notionApi": {
@@ -1529,21 +1529,7 @@
       "typeVersion": 2,
       "position": [
         -2736,
-        43848
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// 恢復原始 webhook event 數據\nconst originalEvent = $('active').item.json;\nreturn originalEvent;"
-      },
-      "id": "e3b6be56-9986-41f9-a5fc-0ffd85c66565",
-      "name": "Restore Original Event",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -2512,
-        43848
+        43856
       ]
     },
     {
@@ -1561,21 +1547,10 @@
       "typeVersion": 1.3,
       "position": [
         -4752,
-        43432
+        43440
       ],
       "id": "c30422ca-66b6-4d9d-9614-d1ee36448778",
       "name": "Schedule Trigger"
-    },
-    {
-      "parameters": {},
-      "id": "fd74b841-ebed-4202-8dc8-204cf420f844",
-      "name": "Manual Trigger (Push Test)",
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        -4752,
-        43136
-      ]
     },
     {
       "parameters": {
@@ -1588,7 +1563,7 @@
       "typeVersion": 2,
       "position": [
         -4080,
-        43528
+        43536
       ]
     },
     {
@@ -1621,7 +1596,7 @@
       "typeVersion": 2.2,
       "position": [
         -3856,
-        43432
+        43440
       ],
       "credentials": {
         "notionApi": {
@@ -1652,7 +1627,7 @@
       "typeVersion": 2.2,
       "position": [
         -3632,
-        43624
+        43632
       ],
       "credentials": {
         "notionApi": {
@@ -1683,7 +1658,7 @@
       "typeVersion": 2.2,
       "position": [
         -3632,
-        43432
+        43440
       ],
       "credentials": {
         "notionApi": {
@@ -1700,7 +1675,7 @@
       "typeVersion": 2,
       "position": [
         -3408,
-        43528
+        43536
       ]
     },
     {
@@ -1713,7 +1688,7 @@
       "typeVersion": 2,
       "position": [
         -3184,
-        43528
+        43536
       ]
     },
     {
@@ -1726,7 +1701,7 @@
       "typeVersion": 2,
       "position": [
         -2960,
-        43528
+        43536
       ]
     },
     {
@@ -1737,7 +1712,7 @@
       "typeVersion": 2,
       "position": [
         -4304,
-        43528
+        43536
       ]
     },
     {
@@ -1770,7 +1745,7 @@
       "typeVersion": 2,
       "position": [
         -2736,
-        43528
+        43536
       ]
     },
     {
@@ -1790,7 +1765,7 @@
       "typeVersion": 4.2,
       "position": [
         -2512,
-        43432
+        43440
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -1816,7 +1791,7 @@
       "typeVersion": 4.2,
       "position": [
         -2512,
-        43624
+        43632
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -1845,7 +1820,7 @@
       "typeVersion": 3.4,
       "position": [
         -4528,
-        43624
+        43632
       ]
     },
     {
@@ -1868,7 +1843,7 @@
       "typeVersion": 3.4,
       "position": [
         -4528,
-        43432
+        43440
       ]
     },
     {
@@ -1901,7 +1876,7 @@
       "typeVersion": 2.2,
       "position": [
         -3408,
-        45000
+        45008
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -1921,7 +1896,7 @@
       "typeVersion": 2,
       "position": [
         -3184,
-        45000
+        45008
       ]
     },
     {
@@ -1954,7 +1929,7 @@
       "typeVersion": 2.2,
       "position": [
         -2064,
-        45576
+        45584
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -1974,7 +1949,7 @@
       "typeVersion": 2,
       "position": [
         -1840,
-        45576
+        45584
       ]
     },
     {
@@ -2016,202 +1991,131 @@
       "typeVersion": 2.2,
       "position": [
         -1616,
-        45576
+        45584
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "fd74b841-ebed-4202-8dc8-204cf420f844",
+      "name": "Manual Trigger (Push Test)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -4752,
+        43632
       ]
     },
     {
       "parameters": {
-        "resource": "databasePage",
-        "operation": "getAll",
-        "databaseId": {
+        "workflowId": {
           "__rl": true,
-          "value": "2e44dbf2-e21c-80d1-af81-c3b61579b3bb",
+          "value": "-CIVmb7fG9yIL8IhBGbEG",
           "mode": "list",
-          "cachedResultName": "USERS",
-          "cachedResultUrl": "https://www.notion.so/2e44dbf2e21c80d1af81c3b61579b3bb"
+          "cachedResultUrl": "/workflow/-CIVmb7fG9yIL8IhBGbEG",
+          "cachedResultName": "Notion Badminton update user display_name"
         },
-        "returnAll": true,
-        "filterType": "manual",
-        "filters": {
-          "conditions": [
-            {
-              "key": "groups|multi_select",
-              "condition": "is_not_empty"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "581788e3-8e6f-4c37-b1ce-3dc9d1377184",
-      "name": "取得可更新的使用者",
-      "type": "n8n-nodes-base.notion",
-      "typeVersion": 2.2,
-      "position": [
-        -4528,
-        43136
-      ],
-      "alwaysOutputData": true,
-      "credentials": {
-        "notionApi": {
-          "id": "RRcVukfrFBXC9j01",
-          "name": "Notion account (修 s1027401)"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "databasePage",
-        "operation": "update",
-        "pageId": {
-          "__rl": true,
-          "value": "={{ $json.id }}",
-          "mode": "id"
-        },
-        "propertiesUi": {
-          "propertyValues": [
-            {
-              "key": "Custom Name|rich_text",
-              "textContent": "={{ $json.display_name }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "fb30b9d2-5c7a-48a1-a971-8e34046c389a",
-      "name": "更新使用者 display_name",
-      "type": "n8n-nodes-base.notion",
-      "typeVersion": 2.2,
-      "position": [
-        -2960,
-        43136
-      ],
-      "credentials": {
-        "notionApi": {
-          "id": "RRcVukfrFBXC9j01",
-          "name": "Notion account (修 s1027401)"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const userData = item.json;\n  \n  // 提取使用者資訊（從 Notion 簡化格式）\n  const userId = userData.property_user_id;\n  const groups = userData.property_groups || [];\n  const notionPageId = userData.id;\n  \n  // 檢查是否有 groups\n  if (!userId || groups.length === 0) {\n    continue;\n  }\n  \n  // 取得第一個 group ID\n  const groupId = groups[0];\n  \n  results.push({\n    json: {\n      user_id: userId,\n      group_id: groupId,\n      notion_page_id: notionPageId,\n      original_data: userData\n    }\n  });\n}\n\nreturn results;"
-      },
-      "id": "2e7d4b99-7d8e-4060-8e66-f481a7f7c112",
-      "name": "準備 API 資料",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -4304,
-        43136
-      ]
-    },
-    {
-      "parameters": {
-        "url": "=https://api.line.me/v2/bot/group/{{ $json.group_id }}/member/{{ $json.user_id }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {}
-      },
-      "id": "51edcdb5-186e-45ff-a173-8a868296394f",
-      "name": "呼叫 LINE API (Dobby)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -4080,
-        43136
-      ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "AXXATrQhz9xpUGTR",
-          "name": "Line Dobby"
-        }
-      },
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "jsCode": "// 取得所有 HTTP 回應和原始資料\nconst items = $input.all();\nconst originalItems = $('準備 API 資料').all();\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const currentData = items[i].json;\n  const originalData = originalItems[i].json;\n  \n  // 如果有 error，保留原始資料結構以便重試\n  if (currentData.error) {\n    results.push({\n      json: {\n        user_id: originalData.user_id,\n        group_id: originalData.group_id,\n        notion_page_id: originalData.notion_page_id,\n        error: currentData.error\n      }\n    });\n  } else {\n    // 如果成功，直接輸出 Notion 更新格式\n    results.push({\n      json: {\n        id: originalData.notion_page_id,\n        display_name: currentData.displayName,\n        user_id: originalData.user_id\n      }\n    });\n  }\n}\n\nreturn results;"
-      },
-      "id": "45d4445b-914d-4353-a44e-c5647c3e824b",
-      "name": "合併 Dobby API 結果",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -3856,
-        43136
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "group_id": "={{ $('Check User Source').item.json.source.groupId }}",
+            "user_id": "={{ $('Check User Source').item.json.source.userId }}"
           },
-          "conditions": [
+          "matchingColumns": [],
+          "schema": [
             {
-              "id": "success-condition",
-              "leftValue": "={{ $json.display_name }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty"
-              }
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "group_id",
+              "displayName": "group_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
             }
           ],
-          "combinator": "and"
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
         },
         "options": {}
       },
-      "id": "9f7e482b-b9a7-4624-a817-553e8f37222f",
-      "name": "檢查 Dobby API 是否成功",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
       "position": [
-        -3632,
-        43136
-      ]
-    },
-    {
-      "parameters": {
-        "url": "=https://api.line.me/v2/bot/group/{{ $json.group_id }}/member/{{ $json.user_id }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {}
-      },
-      "id": "f37b11f1-28d4-4498-9630-c160b3413c13",
-      "name": "呼叫 LINE API (球來就打)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -3408,
-        43208
+        -2512,
+        43856
       ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "EeeK58MFzM1kWVEe",
-          "name": "Line 球來就打"
-        }
-      },
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "jsCode": "// 取得所有 HTTP 回應和原始資料（從檢查 Dobby API 是否成功節點的 False 分支）\nconst items = $input.all();\nconst originalItems = $('檢查 Dobby API 是否成功', 1).all(); // 1 = False 分支\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const currentData = items[i].json;\n  const originalData = originalItems[i].json;\n  \n  // 如果還是失敗，跳過（不更新）\n  if (currentData.error) {\n    continue;\n  }\n  \n  // 如果成功，直接輸出 Notion 更新格式\n  results.push({\n    json: {\n      id: originalData.notion_page_id,\n      display_name: currentData.displayName,\n      user_id: originalData.user_id\n    }\n  });\n}\n\nreturn results;"
-      },
-      "id": "2b33fe06-8ada-4d6e-ae16-004d1e813470",
-      "name": "合併球來就打 API 結果",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -3184,
-        43208
-      ]
+      "id": "5e420a63-0422-4209-a859-779fa92bb8ca",
+      "name": "Call 'Notion Badminton update user display_name'"
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "hsiu-n8n.zeabur.app",
+            "user-agent": "LineBotWebhook/2.0",
+            "content-length": "843",
+            "content-type": "application/json; charset=utf-8",
+            "x-forwarded-for": "147.92.150.196, 147.92.150.196",
+            "x-forwarded-host": "hsiu-n8n.zeabur.app",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-line-signature": "ApKgrHIr4RWA+aOTOoHJGYqG4nE39ws2g7taEQFZmCk=",
+            "x-real-ip": "147.92.150.196",
+            "x-zeabur-container-port": "5678",
+            "x-zeabur-ip-country": "JP",
+            "x-zeabur-request-id": "hnd1::6bda6b7b-dde4-46b3-b331-afa4388028de",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "destination": "U6d13ebf392bb4210e0c88103a198af8f",
+            "events": [
+              {
+                "type": "message",
+                "message": {
+                  "type": "text",
+                  "id": "597073890467905886",
+                  "quoteToken": "9u9vDPhVGDucQTIOWnZE6Gb4S3v_-YyiXtBSRH9seC1Ku8eQxrSztQYOUrN7OYAZYHC1vcP5nhAksI4w7vyrpz7h60qpXAcu0GbWtHJMVccoxcdjBupjE6k-gXcRI-iv80IMwqFthYnVJER3o0mTbg",
+                  "markAsReadToken": "hfSHqZn10ZkjsFenUzqcsQmdiZLBUlXE3Xbuty2xECNfyrrxALsLj8tbEAPo-U-D7RMLvBH3TZK2CabDL7US8v-rWIDjik5Oa1LJXaCgrpF3vVdZ-OG2HoF3n5gKMBLtWC-t-BQbloPfZvURoJkCmBr5bueswF-98GN1UGpyks13Xn5BQYQMtraIDrZOX4ys9PbU6d4x0LyQjTt8K1l0oA",
+                  "text": "Heidi"
+                },
+                "webhookEventId": "01KF7T4G62AMD8Q5YXQDTH282K",
+                "deliveryContext": {
+                  "isRedelivery": false
+                },
+                "timestamp": 1768715075483,
+                "source": {
+                  "type": "group",
+                  "groupId": "Ca18e766e2730654fc1ca2573a14e01e2",
+                  "userId": "U2a0a2c5054c4fa12b78a1d059411e39c"
+                },
+                "replyToken": "17006e7de7bf4dd4a770151e689227ea",
+                "mode": "active"
+              }
+            ]
+          },
+          "webhookUrl": "https://hsiu-n8n.zeabur.app/webhook-test/6ffc18b9-7e3e-464a-9572-f35473e52d4d",
+          "executionMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
   "connections": {
     "Webhook": {
       "main": [
@@ -2335,7 +2239,7 @@
       "main": [
         [
           {
-            "node": "Restore Original Event",
+            "node": "Call 'Notion Badminton update user display_name'",
             "type": "main",
             "index": 0
           }
@@ -2891,17 +2795,6 @@
         ]
       ]
     },
-    "Manual Trigger (Push Test)": {
-      "main": [
-        [
-          {
-            "node": "取得可更新的使用者",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Schedule Trigger": {
       "main": [
         [
@@ -3102,84 +2995,11 @@
         ]
       ]
     },
-    "取得可更新的使用者": {
+    "Manual Trigger (Push Test)": {
       "main": [
         [
           {
-            "node": "準備 API 資料",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "準備 API 資料": {
-      "main": [
-        [
-          {
-            "node": "呼叫 LINE API (Dobby)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "呼叫 LINE API (Dobby)": {
-      "main": [
-        [
-          {
-            "node": "合併 Dobby API 結果",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "合併 Dobby API 結果": {
-      "main": [
-        [
-          {
-            "node": "檢查 Dobby API 是否成功",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "檢查 Dobby API 是否成功": {
-      "main": [
-        [
-          {
-            "node": "更新使用者 display_name",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "呼叫 LINE API (球來就打)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "呼叫 LINE API (球來就打)": {
-      "main": [
-        [
-          {
-            "node": "合併球來就打 API 結果",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "合併球來就打 API 結果": {
-      "main": [
-        [
-          {
-            "node": "更新使用者 display_name",
+            "node": "Set Environment (Test)",
             "type": "main",
             "index": 0
           }
@@ -3195,23 +3015,29 @@
     "timezone": "Asia/Taipei",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "9b08b32f-839e-4b08-87f2-b02847006ec3",
+  "versionId": "ffa05c3a-7519-4319-97cc-110af4999415",
   "meta": {
     "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
   },
   "id": "z-kTyrtVcRCn1Qs2zypfX",
   "tags": [
     {
-      "updatedAt": "2025-04-15T04:50:25.893Z",
-      "createdAt": "2025-04-15T04:50:25.893Z",
-      "id": "0i74kYvNo5LJ26IU",
-      "name": "bot"
+      "name": "notion",
+      "id": "7Ke8MqCOSwz5NZgC",
+      "updatedAt": "2026-01-18T05:24:00.232Z",
+      "createdAt": "2026-01-18T05:24:00.232Z"
     },
     {
       "updatedAt": "2025-04-15T05:32:41.173Z",
       "createdAt": "2025-04-15T05:32:41.173Z",
       "id": "aNPgZxmGaxoKb7As",
       "name": "line"
+    },
+    {
+      "updatedAt": "2025-04-15T04:50:25.893Z",
+      "createdAt": "2025-04-15T04:50:25.893Z",
+      "id": "0i74kYvNo5LJ26IU",
+      "name": "bot"
     }
   ]
 }

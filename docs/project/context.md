@@ -61,7 +61,7 @@
   - `user_id` (Title): LINE User ID（唯一識別碼）
   - `is_admin` (Checkbox): 是否為管理員（預設: `false`）
   - `message_counts` (Number): 使用者累積發送的訊息數量
-  - `Custom Name` (Rich Text): 使用者自訂名稱（保留欄位，目前未使用）
+  - `Custom Name` (Rich Text): 使用者名稱（由子工作流自動更新）
   - `groups` (Multi-select): 使用者所在的所有群組 ID 列表（來自 `source.groupId`）
   - `multi-chat` (Multi-select): 使用者所在的所有聊天室 ID 列表（來自 `source.roomId`）
 - **資料來源對應**:
@@ -113,18 +113,23 @@
    - 如果有新的 `roomId`，加入 `multi-chat`（去重）
 
 6. `更新使用者` (Notion Update): 更新現有使用者
-   - `message_counts` +1
+   - `message_counts`: 若事件類型為 `message` 則 +1，否則維持原值
    - `groups`: 更新後的群組列表
    - `multi-chat`: 更新後的聊天室列表
 
 7. `新增使用者` (Notion Create): 建立新使用者
    - `user_id`: LINE User ID
    - `is_admin`: false
-   - `message_counts`: 1
+   - `message_counts`: 若事件類型為 `message` 則設為 1，否則設為 0
    - `groups`: 如果有 `groupId` 則設為 `[groupId]`，否則為空陣列
    - `multi-chat`: 如果有 `roomId` 則設為 `[roomId]`，否則為空陣列
 
-8. `Merge User Management`: 合併兩個分支後繼續執行 `Event Switch`
+8. `Merge User Management`: 合併更新與新增兩個分支
+
+9. `Call 'Notion Badminton update user display_name'` (Execute Workflow): 呼叫子工作流
+   - 傳入 `group_id` 和 `user_id`
+   - 更新使用者的顯示名稱 (Display Name)
+   - 此流程為 side-effect，執行完畢後結束，不影響主事件處理
 
 **重要設計**:
 - 使用者可能在多個群組/聊天室中與機器人互動，`groups` 和 `multi-chat` 會累積記錄所有互動的地點
