@@ -3,7 +3,7 @@
   "name": "行事曆",
   "name_en": "Calendar",
   "purpose": "記錄每次打球的日期、請假人、場地數量",
-  "last_updated": "2026-01-18T08:54:19.861Z",
+  "last_updated": "2026-01-18T09:02:25.970Z",
   "properties": {
     "請假人": {
       "type": "relation",
