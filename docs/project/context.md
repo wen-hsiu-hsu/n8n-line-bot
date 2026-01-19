@@ -40,6 +40,12 @@
 - `type: "textV2"`
 - 使用 `substitution` 物件定義 placeholder 的 mention 替換
 
+#### INTRODUCE Placeholder 規則
+當使用者輸入 `@Dobby` 時，會觸發自我介紹訊息，並替換以下 placeholders：
+
+- `{USER}`: 自動替換為觸發指令的使用者（使用 LINE textV2 mention）
+- `{MANAGER}`: 自動替換為管理員（硬編碼 ID: `U2a0a2c5054c4fa12b78a1d059411e39c`）
+
 ### 5. TEXT_REPLY (自動回覆)
 - **用途**: 根據關鍵字觸發自動回覆訊息。
 - **觸發邏輯**: 字串包含匹配（**區分大小寫**，`Line bot.json` 中直接使用 `includes()` 且未轉小寫）
@@ -65,12 +71,13 @@
 - ~~**Manager User ID**: `U2a0a2c5054c4fa12b78a1d059411e39c` (Deprecated - now using database)~~
 
 ### Commands (Defined in Command Controller)
-- `!owe` / `！欠`: 查詢未繳費名單
-- `!command` / `！指令`: 查詢指令列表
-- `!participants` / `!people` / `！報名人`: 查詢季度報名人 (可選參數: `e.g. !participants 2025-Q1`)
-- `!next` (Admin only): 下一次通知
-- `!news` / `！公告`: 查詢最新公告
-- `!payment` / `！付款`: 查詢付款資訊 (支援顯示 bulleted list 項目)
+- `@Dobby`: 觸發自我介紹 (Self Introduction)
+- `@Dobby owe` / `@Dobby 欠`: 查詢未繳費名單
+- `@Dobby command` / `@Dobby 指令`: 查詢指令列表
+- `@Dobby participants` / `@Dobby people` / `@Dobby 報名人`: 查詢季度報名人 (可選參數: `e.g. @Dobby participants 2025-Q1`)
+- `@Dobby next` (Admin only): 下一次通知
+- `@Dobby news` / `@Dobby 公告`: 查詢最新公告
+- `@Dobby payment` / `@Dobby 付款`: 查詢付款資訊 (支援顯示 bulleted list 項目)
 - `@Dobby +1`: 報名零打（自己）。如果是季租球員，則報名一個「朋友」。
 - `@Dobby +2`: 報名兩個零打。
 - `@Dobby -1`: 取消報名。
