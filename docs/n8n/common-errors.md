@@ -867,3 +867,46 @@ IF 節點的條件顯示紅色警告，或執行時出現 validation 錯誤。
 4. 複製正確的 operator 配置
 
 **參考**: 參考 `Line bot.json` 中其他成功運作的 IF 節點配置。
+
+## 15. Editing Code in n8n JSON: Escaping Issues
+
+**錯誤現象**:
+嘗試通過 AI 或腳本編輯 `Line bot.json` 中的 JavaScript 代碼（`jsCode` 欄位）時，出現 JSON 解析錯誤或代碼執行錯誤。特徵是換行符號斷裂、引號錯亂。
+
+**原因**:
+n8n 的 `.json` 檔案中，JavaScript 代碼是作為一個 JSON 字串儲存的。這意味著代碼中的所有特殊字元必須被轉義（Escaped）：
+- 換行符 `\n` 必須寫成 `\\n`
+- 雙引號 `"` 必須寫成 `\"`
+- 反斜線 `\` 必須寫成 `\\`
+
+直接從編輯器複製代碼貼入 JSON 值，會導致 JSON 格式錯誤。
+
+**解決方案**:
+1. **不要**直接編輯 massive JSON file 中的字串，除非改動非常小且不包含特殊字元。
+2. **推薦**：使用腳本語言（如 Python）讀取 JSON，修改物件屬性，然後寫回。腳本語言的 JSON library 會自動處理 escaping。
+
+**Python 安全修改範例**:
+```python
+import json
+
+with open('Line bot.json', 'r') as f:
+    data = json.load(f)
+
+# 新的 JS 代碼（Raw String in Python）
+new_code = r'''
+const foo = "bar";
+return { json: { foo } };
+'''
+
+# 找到目標節點並更新
+for node in data['nodes']:
+    if node['name'] == 'My Code Node':
+        node['parameters']['jsCode'] = new_code
+
+# 寫回檔案（自動處理 escaping）
+with open('Line bot.json', 'w') as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+```
+
+**手動修改技巧**:
+如果必須手動修改，請先將代碼放入 String Escaper 工具中轉換為 JSON String，再貼入 `jsCode` 的值中。

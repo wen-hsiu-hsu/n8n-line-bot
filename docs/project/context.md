@@ -78,13 +78,22 @@
 - `@Dobby next` (Admin only): 下一次通知
 - `@Dobby news` / `@Dobby 公告`: 查詢最新公告
 - `@Dobby payment` / `@Dobby 付款`: 查詢付款資訊 (支援顯示 bulleted list 項目)
-- `@Dobby +1`: 報名零打（自己）。如果是季租球員，則報名一個「朋友」。
+- `@Dobby +1`: 報名零打（自己）。如果是季租球員，則報名一個「朋友」。重複`+1`會自動以 `+2`, `+3` 格式處理。
 - `@Dobby +2`: 報名兩個零打。
 - `@Dobby -1`: 取消報名。
-- `@Dobby 假`: 季租球員請假。
+- `@Dobby 假`: 季租球員請假。系統會立即扣除請假人數並釋出名額（使用 Post-Update Calculation）。
 - `@Dobby 銷假`: 季租球員取消請假。
 - `@Dobby {Name} {Command}`: (管理員) 代他人操作（支持 `@mention` 或自定義名稱）。
 
+### Leave Policy (請假規則)
+- **資格限制**: 僅限該季度的 **季租球員 (Season Players)** 使用。非季租球員（或未被連結至人員清單的使用者）無法請假。
+- **狀態檢查 (Idempotency)**:
+  - 若已請假，再次輸入 `@Dobby 假` 會回傳錯誤提示（避免重複計算）。
+  - 若未請假，輸入 `@Dobby 銷假` 會回傳錯誤提示。
+- **名額釋出機制**:
+  - 請假成功後，系統會計算 `Total Capacity - (Season Members - Updated Leave List)`。
+  - **零打名額 (Guest Slots)** 會立即增加，供其他人報名。
+- **資料源**: 讀取並更新 Notion 行事曆當週頁面的 `請假人` (Relation) 欄位。
 ### Event Handlers
 
 #### 1. User Management (使用者管理)
