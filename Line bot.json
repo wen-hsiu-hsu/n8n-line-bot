@@ -289,7 +289,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const parser = $(\"Registration Parser\").item.json;\nconst resolve = $input.item.json;\n\n// Robust property getters\nconst getRegisteredNameId = (item) => (item.properties?.['Registered name']?.relation?.[0]?.id || item.property_registered_name?.[0]);\nconst getCustomName = (item) => (item.properties?.['Custom Name']?.rich_text?.[0]?.plain_text || item.property_custom_name);\nconst getUserId = (item) => (item.properties?.['user_id']?.title?.[0]?.plain_text || item.property_user_id);\nconst getName = (item) => (item.properties?.['Name']?.title?.[0]?.plain_text || item.property_name || item.name);\n\nlet targetPersonId = null;\nlet targetPersonName = \"Unknown\";\n\ntry {\n  if (resolve.type === 'self') {\n    targetPersonId = resolve.targetPersonId;\n    targetPersonName = resolve.targetName;\n  } else if (resolve.type === 'mention') {\n    const targetUser = $(\"Get Target User (Mention)\").item.json;\n    targetPersonId = getRegisteredNameId(targetUser);\n    targetPersonName = getCustomName(targetUser) || getUserId(targetUser);\n  } else {\n    const targetPerson = $(\"Get Target Person (By Name)\").item.json;\n    targetPersonId = targetPerson.id;\n    targetPersonName = getName(targetPerson) || parser.targetName;\n  }\n} catch (e) {\n  // If lookup failed, we still have the name from parser if provided\n  targetPersonName = parser.targetName || \"Unknown\";\n}\n\nreturn {\n  ...parser,\n  actorIsAdmin: resolve.isAdmin,\n  targetPersonId,\n  targetPersonName\n};"
+        "jsCode": "const parser = $(\"Registration Parser\").item.json;\nconst resolve = $(\"Resolve Registration Target\").first().json;\n\n// Robust property getters\nconst getRegisteredNameId = (item) => (item.properties?.['Registered name']?.relation?.[0]?.id || item.property_registered_name?.[0]);\nconst getCustomName = (item) => (item.properties?.['Custom Name']?.rich_text?.[0]?.plain_text || item.property_custom_name);\nconst getUserId = (item) => (item.properties?.['user_id']?.title?.[0]?.plain_text || item.property_user_id);\nconst getName = (item) => (item.properties?.['Name']?.title?.[0]?.plain_text || item.property_name || item.name);\n\nlet targetPersonId = null;\nlet targetPersonName = \"Unknown\";\n\ntry {\n  if (resolve.type === 'self') {\n    targetPersonId = resolve.targetPersonId;\n    targetPersonName = resolve.targetName;\n  } else if (resolve.type === 'mention') {\n    const targetUser = $(\"Get Target User (Mention)\").item.json;\n    targetPersonId = getRegisteredNameId(targetUser);\n    targetPersonName = getCustomName(targetUser) || getUserId(targetUser);\n  } else {\n    const targetPerson = $(\"Get Target Person (By Name)\").item.json;\n    targetPersonId = targetPerson.id;\n    targetPersonName = getName(targetPerson) || parser.targetName;\n  }\n} catch (e) {\n  // If lookup failed, we still have the name from parser if provided\n  targetPersonName = parser.targetName || \"Unknown\";\n}\n\nreturn {\n  ...parser,\n  actorIsAdmin: resolve.isAdmin,\n  targetPersonId,\n  targetPersonName\n};"
       },
       "id": "76eb5b7b-e079-428b-8e40-dad4df2aa34e",
       "name": "Aggregate Target",
@@ -314,7 +314,7 @@
         "filters": {
           "conditions": [
             {
-              "key": "Name",
+              "key": "Name|title",
               "condition": "equals",
               "titleValue": "={{ $json.targetName }}"
             }
@@ -328,7 +328,7 @@
       "typeVersion": 2.2,
       "position": [
         76976,
-        88120
+        88128
       ],
       "credentials": {
         "notionApi": {
@@ -365,7 +365,7 @@
       "typeVersion": 2.2,
       "position": [
         76976,
-        88312
+        88320
       ],
       "credentials": {
         "notionApi": {
@@ -524,7 +524,7 @@
       "typeVersion": 2,
       "position": [
         76080,
-        88392
+        88400
       ]
     },
     {
@@ -695,7 +695,7 @@
       "typeVersion": 2,
       "position": [
         75408,
-        88312
+        88320
       ]
     },
     {
@@ -728,7 +728,7 @@
       "typeVersion": 2.2,
       "position": [
         75184,
-        88312
+        88320
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -1196,7 +1196,7 @@
       "typeVersion": 2.2,
       "position": [
         74512,
-        88024
+        88032
       ]
     },
     {
@@ -1801,7 +1801,7 @@
       "typeVersion": 2,
       "position": [
         76976,
-        86776
+        86784
       ]
     },
     {
@@ -1813,7 +1813,7 @@
       "typeVersion": 2,
       "position": [
         78320,
-        86872
+        86880
       ],
       "id": "080ae92f-2bd7-4015-9c1f-1438ce102094"
     },
@@ -2578,7 +2578,7 @@
       "typeVersion": 2.2,
       "position": [
         75632,
-        88312
+        88320
       ]
     },
     {
@@ -2592,7 +2592,7 @@
       "typeVersion": 2,
       "position": [
         76304,
-        88680
+        88688
       ]
     },
     {
@@ -2658,7 +2658,7 @@
       "typeVersion": 1,
       "position": [
         74064,
-        88024
+        88032
       ]
     },
     {
@@ -2669,7 +2669,7 @@
       "typeVersion": 2,
       "position": [
         78096,
-        86872
+        86880
       ]
     },
     {
@@ -2680,7 +2680,7 @@
       "typeVersion": 2,
       "position": [
         77872,
-        86680
+        86688
       ]
     },
     {
@@ -2795,7 +2795,7 @@
       "typeVersion": 2.2,
       "position": [
         74288,
-        88024
+        88032
       ]
     },
     {
@@ -2810,7 +2810,7 @@
       "typeVersion": 2,
       "position": [
         73840,
-        88024
+        88032
       ],
       "webhookId": "6ffc18b9-7e3e-464a-9572-f35473e52d4d"
     }
@@ -3985,17 +3985,17 @@
     "timezone": "Asia/Taipei",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "b69a7247-7dc2-44e3-8daf-9d122103a5e6",
+  "versionId": "95a96cbb-3d4b-489b-bc61-aad808197cb8",
   "meta": {
     "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
   },
   "id": "z-kTyrtVcRCn1Qs2zypfX",
   "tags": [
     {
-      "updatedAt": "2025-04-15T04:50:25.893Z",
-      "createdAt": "2025-04-15T04:50:25.893Z",
-      "id": "0i74kYvNo5LJ26IU",
-      "name": "bot"
+      "updatedAt": "2026-01-18T05:24:00.232Z",
+      "createdAt": "2026-01-18T05:24:00.232Z",
+      "id": "7Ke8MqCOSwz5NZgC",
+      "name": "notion"
     },
     {
       "updatedAt": "2025-04-15T05:32:41.173Z",
@@ -4004,10 +4004,10 @@
       "name": "line"
     },
     {
-      "updatedAt": "2026-01-18T05:24:00.232Z",
-      "createdAt": "2026-01-18T05:24:00.232Z",
-      "id": "7Ke8MqCOSwz5NZgC",
-      "name": "notion"
+      "updatedAt": "2025-04-15T04:50:25.893Z",
+      "createdAt": "2025-04-15T04:50:25.893Z",
+      "id": "0i74kYvNo5LJ26IU",
+      "name": "bot"
     }
   ]
 }
