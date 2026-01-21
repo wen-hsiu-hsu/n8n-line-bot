@@ -24,13 +24,13 @@
         },
         "options": {}
       },
-      "id": "370c0d4a-3691-4884-b003-959b00c24402",
+      "id": "944ca64d-c05c-4003-a847-b7608e487083",
       "name": "取得自我介紹",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        77872,
-        87472
+        87920,
+        92992
       ],
       "credentials": {
         "notionApi": {
@@ -51,13 +51,13 @@
         "returnAll": true,
         "fetchNestedBlocks": true
       },
-      "id": "3a1c43aa-a467-4bb5-8cbb-9c6e84b15f09",
+      "id": "03dbc3a0-b2a8-44b2-bcef-ebe114d62c8d",
       "name": "自我介紹 child blocks",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        78096,
-        87472
+        88144,
+        92992
       ],
       "credentials": {
         "notionApi": {
@@ -70,13 +70,13 @@
       "parameters": {
         "jsCode": "const blocks = $('自我介紹 child blocks').all().map(item => item.json);\nconst event = $('active').item.json;\nconst joinedUserId = event.source.userId;\nconst managerId = \"U2a0a2c5054c4fa12b78a1d059411e39c\";\n\nconst validBlocks = blocks.filter(b => b.content && b.content.trim() !== \"\");\nlet templateText = validBlocks.map(b => {\n    if (b.type === 'bulleted_list_item') {\n        return `• ${b.content}`;\n    }\n    return b.content;\n}).join('\\n');\n\nif (!templateText) templateText = \"自我介紹 (Intro Message Empty)\";\n\n// 建立 substitution 物件（使用 textV2 格式）\nconst substitution = {};\n\nif (templateText.includes('{USER}')) {\n    substitution.USER = {\n        type: \"mention\",\n        mentionee: {\n            type: \"user\",\n            userId: joinedUserId\n        }\n    };\n}\n\nif (templateText.includes('{MANAGER}')) {\n    substitution.MANAGER = {\n        type: \"mention\",\n        mentionee: {\n            type: \"user\",\n            userId: managerId\n        }\n    };\n}\n\nconst result = {\n    type: \"textV2\",\n    text: templateText\n};\n\nif (Object.keys(substitution).length > 0) {\n    result.substitution = substitution;\n}\n\nreturn result;"
       },
-      "id": "cf04af53-db6a-4dbd-b6dd-03c04346b79a",
+      "id": "83128efa-1371-406b-a3e5-2428dd0f06d6",
       "name": "Self Intro Parser",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        78320,
-        87472
+        88368,
+        92992
       ]
     },
     {
@@ -98,13 +98,13 @@
         },
         "options": {}
       },
-      "id": "a6d52526-a309-4521-b573-c3964f2f1880",
+      "id": "50fff573-cea6-401c-8c75-94b9fcb74a34",
       "name": "Update Calendar Guest List",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        78096,
-        88512
+        88144,
+        94032
       ],
       "credentials": {
         "notionApi": {
@@ -115,15 +115,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const logic = $(\"Registration Logic Processor\").item.json;\nif (logic.error) {\n  return { type: 'text', text: logic.error };\n}\n\nconst participants = logic.finalParticipants || [];\nconst guestParticipants = participants.filter(p => p.type === 'guest');\nconst lines = [];\n\nconst grouped = [];\nguestParticipants.forEach(p => {\n    const baseName = p.name.replace(/朋友.*$/, '朋友').replace(/ \\d+$/, '');\n    if (grouped.length > 0 && grouped[grouped.length-1].base === baseName) {\n        grouped[grouped.length-1].count++;\n    } else {\n        grouped.push({ base: baseName, name: p.name, type: p.type, count: 1 });\n    }\n});\n\nlet currentCount = 0;\ngrouped.forEach((g, i) => {\n    currentCount++;\n    if (g.count > 1) {\n        lines.push(`${currentCount}. ${g.base} +${g.count}`);\n    } else {\n        lines.push(`${currentCount}. ${g.name}`);\n    }\n});\n\n// Pad with empty numbered slots\nconst maxSlots = logic.maxSlots || 0;\nconst usedSlots = guestParticipants.length; \n// Logic note: lines printed above correspond to groups. \n// Standard requirement: One line per slot? No, commonly \"1. Name\", \"2. Name\".\n// If +2, it might take 1 line but 2 slots? \n// Original code: lines.push(...) for each GROUP. \n// If I have \"Name +2\", that is 2 slots.\n// But the display requirement usually lists slots physically or just available count.\n// User requested: \"numbered list of empty slots\".\n// Assuming we continue numbering from where we left off.\n\n// Let's refine the numbering to match slots.\n// Actually, usually users want to see:\n// 1. A\n// 2. B\n// 3. \n// 4.\n\n// Re-doing the loop to be simpler for this requirement:\n// Not grouping +2 for the list? \n// User prompt said: \"duplicate zero-day signups needed to be displayed with a + separator\". \n// So \"Name+2\" is likely one entry in the list?\n// If \"Name+2\" (2 people) takes 2 slots.\n// Does it show as:\n// 1. Name+2\n// 3. \n// OR\n// 1. Name+2\n// 2. Name+2 (implied)\n// 3.\n\n// Let's stick to the previous grouping logic for now, but just append empty numbers.\n// If \"Name+2\" takes 2 slots, but occupies 1 line \"1. Name+2\". \n// The next available slot number should probably start after the *used* slots.\n// total used = guestParticipants.length.\n// So if 2 guests, next empty is 3.\n\nconst usedCount = guestParticipants.length;\nconst startEmpty = usedCount + 1;\n\nfor (let i = startEmpty; i <= maxSlots; i++) {\n    lines.push(`${i}.`);\n}\n\nconst remaining = Math.max(0, logic.maxSlots - guestParticipants.length);\nconst text = [\n  `${logic.eventDate}`,\n  `零打名額 ${logic.maxSlots} 人 | $${logic.fee}/人`,\n  ...lines,\n  `剩餘名額： ${remaining} 人`,\n  '',\n  `若要報名請輸入 @Dobby +1`\n].join('\\n');\n\nreturn { type: 'text', text };"
+        "jsCode": "const logic = $(\"Registration Logic Processor\").item.json;\nif (logic.error) {\n  return { type: 'text', text: logic.error };\n}\n\nconst participants = logic.finalParticipants || [];\nconst guestParticipants = participants.filter(p => p.type === 'guest');\nconst lines = [];\n\nconst grouped = [];\nguestParticipants.forEach(p => {\n    const baseName = p.name.replace(/朋友.*$/, '朋友').replace(/ \\d+$/, '');\n    if (grouped.length > 0 && grouped[grouped.length-1].base === baseName) {\n        grouped[grouped.length-1].count++;\n    } else {\n        grouped.push({ base: baseName, name: p.name, type: p.type, count: 1 });\n    }\n});\n\nlet currentCount = 0;\ngrouped.forEach((g, i) => {\n    currentCount++;\n    if (g.count > 1) {\n        lines.push(`${currentCount}. ${g.base} +${g.count}`);\n    } else {\n        lines.push(`${currentCount}. ${g.name}`);\n    }\n});\n\n// Pad with empty numbered slots\nconst maxSlots = logic.maxSlots || 0;\nconst usedSlots = guestParticipants.length; \n// Logic note: lines printed above correspond to groups. \n// Standard requirement: One line per slot? No, commonly \"1. Name\", \"2. Name\".\n// If +2, it might take 1 line but 2 slots? \n// Original code: lines.push(...) for each GROUP. \n// If I have \"Name +2\", that is 2 slots.\n// But the display requirement usually lists slots physically or just available count.\n// User requested: \"numbered list of empty slots\".\n// Assuming we continue numbering from where we left off.\n\n// Let's refine the numbering to match slots.\n// Actually, usually users want to see:\n// 1. A\n// 2. B\n// 3. \n// 4.\n\n// Re-doing the loop to be simpler for this requirement:\n// Not grouping +2 for the list? \n// User prompt said: \"duplicate zero-day signups needed to be displayed with a + separator\". \n// So \"Name+2\" is likely one entry in the list?\n// If \"Name+2\" (2 people) takes 2 slots.\n// Does it show as:\n// 1. Name+2\n// 3. \n// OR\n// 1. Name+2\n// 2. Name+2 (implied)\n// 3.\n\n// Let's stick to the previous grouping logic for now, but just append empty numbers.\n// If \"Name+2\" takes 2 slots, but occupies 1 line \"1. Name+2\". \n// The next available slot number should probably start after the *used* slots.\n// total used = guestParticipants.length.\n// So if 2 guests, next empty is 3.\n\nconst usedCount = guestParticipants.length;\nconst startEmpty = usedCount + 1;\n\nfor (let i = startEmpty; i <= maxSlots; i++) {\n    lines.push(`${i}.`);\n}\n\nconst remaining = Math.max(0, logic.maxSlots - guestParticipants.length);\nconst leaveNames = logic.finalLeaveNames || [];\nconst textParts = [\n  `${logic.eventDate}`,\n  `零打名額 ${logic.maxSlots} 人 | ${logic.fee}/人`,\n  ...lines,\n  `剩餘名額： ${remaining} 人`\n];\n\nif (leaveNames.length > 0) {\n    textParts.push(`請假：${leaveNames.join('、')}`);\n}\n\ntextParts.push('', `若要報名請輸入 @Dobby +1`);\n\nconst text = textParts.join('\\n');\n\nreturn { type: 'text', text };"
       },
-      "id": "ff56c5ba-8e5f-4347-a4e5-efbb56d45428",
+      "id": "285ce198-0bdf-4ba1-a343-540e2bf7edca",
       "name": "Registration Final Reply",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        78320,
-        88224
+        88368,
+        93744
       ]
     },
     {
@@ -148,13 +148,13 @@
         },
         "options": {}
       },
-      "id": "dacec45b-ff74-420d-8f32-3b21b5590e5e",
+      "id": "a1becd5e-20e2-4ca0-88c6-a799128a70f1",
       "name": "Update Notion Leave",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        78096,
-        87856
+        88144,
+        93376
       ],
       "credentials": {
         "notionApi": {
@@ -243,61 +243,61 @@
         },
         "options": {}
       },
-      "id": "8e031596-a377-4c9a-9984-9c365726b0d4",
+      "id": "8e0adb38-f564-46bb-ad4c-a714e75b6964",
       "name": "Update Notion Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        77872,
-        88208
+        87920,
+        93728
       ]
     },
     {
       "parameters": {
-        "jsCode": "const aggregate = $(\"Aggregate Target\").item.json;\nconst quarterInfo = $(\"取得該季資訊\").first().json;\nconst metadata = $(\"metadata\").first().json;\nconst allEvents = $(\"取得打球日\").all().map(item => item.json);\nconst peopleList = $(\"Get People Next\").all().map(item => item.json);\n\n// Robust property getters\nconst getDate = (item) => (item.properties?.['時間']?.date?.start || (typeof item.property_時間 === 'string' ? item.property_時間 : item.property_時間?.start));\nconst getRelationIds = (item, key) => (item.properties?.[key]?.relation?.map(r => r.id) || item[`property_${key.toLowerCase()}`] || []);\nconst getMultiSelect = (item, key) => (item.properties?.[key]?.multi_select?.map(s => s.name) || item[`property_${key.toLowerCase()}`] || []);\nconst getNumber = (item, key) => (item.properties?.[key]?.number || item[`property_${key.toLowerCase()}`] || 0);\nconst getName = (item) => (item.properties?.['Name']?.title?.[0]?.plain_text || item.property_name || item.name);\n\nconst targetDate = metadata.nextSaturdayDateText;\nconst eventPage = allEvents.find(page => {\n  const startTime = getDate(page);\n  return startTime && startTime.startsWith(targetDate);\n});\n\nif (!eventPage) {\n  throw new Error(`找不到 ${targetDate} 的活動頁面`);\n}\n\nconst peopleMap = new Map();\npeopleList.forEach(p => peopleMap.set(p.id, p));\n\nconst command = aggregate.command;\nconst targetPersonId = aggregate.targetPersonId;\nconst targetPersonName = aggregate.targetPersonName;\nconst actorIsAdmin = aggregate.actorIsAdmin;\n\nconst seasonMembers = getRelationIds(quarterInfo, '報名人');\nconst isSelfSeasonPlayer = targetPersonId && seasonMembers.includes(targetPersonId);\n\nconst maxCourts = getNumber(eventPage, '場地數') || getNumber(quarterInfo, '場地數') || 0;\nconst totalCapacity = maxCourts * 7;\nconst leaveList = getRelationIds(eventPage, '請假人');\nconst guestList = getMultiSelect(eventPage, '零打'); // Changed to Multi-select (strings)\nconst seasonTotal = seasonMembers.length;\n\nlet updateType = null;\nlet updateData = null;\nlet error = null;\n\n// Check Parser Error or Admin Permission\nif (aggregate.parserError) {\n    error = aggregate.parserError;\n} else if (!aggregate.isSelf && !aggregate.actorIsAdmin) {\n    error = '你才不是管理員';\n}\n\n// Helper to resolve display name (e.g., 修_Kevin -> 許文修)\nconst resolveDisplayName = (rawBaseName) => {\n    if (rawBaseName === targetPersonName && targetPersonId) {\n        return getName(peopleMap.get(targetPersonId) || {}) || rawBaseName;\n    }\n    return rawBaseName;\n};\n\nif (!error) {\n    try {\n      if (command === '假' || command === '銷假') {\n        if (!isSelfSeasonPlayer) {\n          error = '只有季打球員才能請假/銷假喔';\n        } else {\n          updateType = 'leave';\n          if (command === '假') {\n            if (leaveList.includes(targetPersonId)) {\n              error = `${targetPersonName} 已經請過假囉`;\n            } else {\n              updateData = [...leaveList.map(id => ({ id })), { id: targetPersonId }];\n            }\n          } else {\n            if (!leaveList.includes(targetPersonId)) {\n              error = `${targetPersonName} 本來就沒有請假喔`;\n            } else {\n              updateData = leaveList.filter(id => id !== targetPersonId).map(id => ({ id }));\n            }\n          }\n        }\n      } else if (command === '+1' || command === '+2' || command === '-1') {\n        updateType = 'guest';\n        const count = (command === '+2') ? 2 : 1;\n        \n        // Base name for internal tracking vs display matching\n        let baseName = targetPersonName;\n        if (isSelfSeasonPlayer) baseName = `${targetPersonName}朋友`;\n        \n        // Display name based on Personnel List registration\n        const baseDisplayName = resolveDisplayName(baseName);\n    \n        // Current attendance calc (pre-update for validation)\n        const PreCalcLeaveLen = leaveList.length;\n        const PreCalcGuestLen = guestList.length;\n        const PreCalcAttendance = seasonTotal - PreCalcLeaveLen + PreCalcGuestLen;\n    \n        if (command.startsWith('+')) {\n          if (PreCalcAttendance + count > totalCapacity && !actorIsAdmin) {\n            error = '名額已滿囉，下次請早點喊聲！';\n          } else {\n            const newGuests = [...guestList];\n            for (let i = 0; i < count; i++) {\n               let attempt = 1;\n               while (true) {\n                 const candidate = attempt === 1 ? baseDisplayName : `${baseDisplayName}+${attempt}`;\n                 if (!newGuests.includes(candidate)) {\n                   newGuests.push(candidate);\n                   break;\n                 }\n                 attempt++;\n               }\n            }\n            updateData = newGuests; // Array of strings for Multi-select\n          }\n        } else {\n          const matchedIndices = guestList.map((name, index) => ({ name, index }))\n            .filter(g => g.name === baseDisplayName || g.name.startsWith(`${baseDisplayName}+`));\n          \n          if (matchedIndices.length === 0) {\n            error = `找不到 ${targetPersonName} 的報名紀錄`;\n          } else {\n            matchedIndices.sort((a, b) => {\n                const getNum = (s) => {\n                    if (s === baseDisplayName) return 1;\n                    const m = s.match(/\\+(\\d+)$/);\n                    return m ? parseInt(m[1]) : 1;\n                };\n                return getNum(b.name) - getNum(a.name);\n            });\n            updateData = guestList.filter((_, i) => i !== matchedIndices[0].index);\n          }\n        }\n      }\n    } catch (e) {\n      error = '我腦袋壞去，突然不知道處理這些事情了...';\n    }\n}\n\n// === Post-Update Logic ===\n// Determine final state for reply\nconst finalLeaveList = (updateType === 'leave' && !error && updateData) ? updateData.map(d => d.id) : leaveList;\nconst finalGuestList = (updateType === 'guest' && !error && updateData) ? updateData : guestList;\n\n// Corrected guestCapacity calculation: Total Capacity - (Season Members - Final Absentees)\nconst guestCapacity = Math.max(0, totalCapacity - (seasonTotal - finalLeaveList.length));\n\n// Calculate final participants list\nconst finalParticipants = [];\nseasonMembers.forEach(id => {\n  if (!finalLeaveList.includes(id)) {\n    finalParticipants.push({\n      name: getName(peopleMap.get(id) || {}) || \"未知球員\",\n      type: 'season'\n    });\n  }\n});\n\nfinalGuestList.forEach(name => {\n  finalParticipants.push({\n    name: name || \"未知朋友\",\n    type: 'guest'\n  });\n});\n\nreturn {\n  parser: aggregate,\n  eventPageId: eventPage.id,\n  eventDate: targetDate,\n  maxSlots: guestCapacity,\n  fee: getNumber(quarterInfo, '零打費用'),\n  updateType,\n  updateData,\n  error,\n  isSeasonPlayer: isSelfSeasonPlayer,\n  finalParticipants\n};"
+        "jsCode": "const aggregate = $(\"Aggregate Target\").item.json;\nconst quarterInfo = $(\"取得該季資訊\").first().json;\nconst metadata = $(\"metadata\").first().json;\nconst allEvents = $(\"取得打球日\").all().map(item => item.json);\nconst peopleList = $(\"Get People Next\").all().map(item => item.json);\n\n// Robust property getters\nconst getDate = (item) => (item.properties?.['時間']?.date?.start || (typeof item.property_時間 === 'string' ? item.property_時間 : item.property_時間?.start));\nconst getRelationIds = (item, key) => (item.properties?.[key]?.relation?.map(r => r.id) || item[`property_${key.toLowerCase()}`] || []);\nconst getMultiSelect = (item, key) => (item.properties?.[key]?.multi_select?.map(s => s.name) || item[`property_${key.toLowerCase()}`] || []);\nconst getNumber = (item, key) => (item.properties?.[key]?.number || item[`property_${key.toLowerCase()}`] || 0);\nconst getName = (item) => (item.properties?.['Name']?.title?.[0]?.plain_text || item.property_name || item.name);\n\nconst targetDate = metadata.nextSaturdayDateText;\nconst eventPage = allEvents.find(page => {\n  const startTime = getDate(page);\n  return startTime && startTime.startsWith(targetDate);\n});\n\nif (!eventPage) {\n  throw new Error(`找不到 ${targetDate} 的活動頁面`);\n}\n\nconst peopleMap = new Map();\npeopleList.forEach(p => peopleMap.set(p.id, p));\n\nconst command = aggregate.command;\nconst targetPersonId = aggregate.targetPersonId;\nconst targetPersonName = aggregate.targetPersonName;\nconst actorIsAdmin = aggregate.actorIsAdmin;\n\nconst seasonMembers = getRelationIds(quarterInfo, '報名人');\nconst isSelfSeasonPlayer = targetPersonId && seasonMembers.includes(targetPersonId);\n\nconst maxCourts = getNumber(eventPage, '場地數') || getNumber(quarterInfo, '場地數') || 0;\nconst totalCapacity = maxCourts * 7;\nconst leaveList = getRelationIds(eventPage, '請假人');\nconst guestList = getMultiSelect(eventPage, '零打'); // Changed to Multi-select (strings)\nconst seasonTotal = seasonMembers.length;\n\nlet updateType = null;\nlet updateData = null;\nlet error = null;\n\n// Check Parser Error or Admin Permission\nif (aggregate.parserError) {\n    error = aggregate.parserError;\n} else if (!aggregate.isSelf && !aggregate.actorIsAdmin) {\n    error = '你才不是管理員';\n}\n\n// Helper to resolve display name (e.g., 修_Kevin -> 許文修)\nconst resolveDisplayName = (rawBaseName) => {\n    if (rawBaseName === targetPersonName && targetPersonId) {\n        return getName(peopleMap.get(targetPersonId) || {}) || rawBaseName;\n    }\n    return rawBaseName;\n};\n\nif (!error) {\n    try {\n      if (command === '假' || command === '銷假') {\n        if (!isSelfSeasonPlayer) {\n          error = '只有季打球員才能請假/銷假喔';\n        } else {\n          updateType = 'leave';\n          if (command === '假') {\n            if (leaveList.includes(targetPersonId)) {\n              error = `${targetPersonName} 已經請過假囉`;\n            } else {\n              updateData = [...leaveList.map(id => ({ id })), { id: targetPersonId }];\n            }\n          } else {\n            if (!leaveList.includes(targetPersonId)) {\n              error = `${targetPersonName} 本來就沒有請假喔`;\n            } else {\n              updateData = leaveList.filter(id => id !== targetPersonId).map(id => ({ id }));\n            }\n          }\n        }\n      } else if (command === '+1' || command === '+2' || command === '-1') {\n        updateType = 'guest';\n        const count = (command === '+2') ? 2 : 1;\n        \n        // Base name for internal tracking vs display matching\n        let baseName = targetPersonName;\n        if (isSelfSeasonPlayer) baseName = `${targetPersonName}朋友`;\n        \n        // Display name based on Personnel List registration\n        const baseDisplayName = resolveDisplayName(baseName);\n    \n        // Current attendance calc (pre-update for validation)\n        const PreCalcLeaveLen = leaveList.length;\n        const PreCalcGuestLen = guestList.length;\n        const PreCalcAttendance = seasonTotal - PreCalcLeaveLen + PreCalcGuestLen;\n    \n        if (command.startsWith('+')) {\n          if (PreCalcAttendance + count > totalCapacity && !actorIsAdmin) {\n            error = '名額已滿囉，下次請早點喊聲！';\n          } else {\n            const newGuests = [...guestList];\n            for (let i = 0; i < count; i++) {\n               let attempt = 1;\n               while (true) {\n                 const candidate = attempt === 1 ? baseDisplayName : `${baseDisplayName}+${attempt}`;\n                 if (!newGuests.includes(candidate)) {\n                   newGuests.push(candidate);\n                   break;\n                 }\n                 attempt++;\n               }\n            }\n            updateData = newGuests; // Array of strings for Multi-select\n          }\n        } else {\n          const matchedIndices = guestList.map((name, index) => ({ name, index }))\n            .filter(g => g.name === baseDisplayName || g.name.startsWith(`${baseDisplayName}+`));\n          \n          if (matchedIndices.length === 0) {\n            error = `找不到 ${targetPersonName} 的報名紀錄`;\n          } else {\n            matchedIndices.sort((a, b) => {\n                const getNum = (s) => {\n                    if (s === baseDisplayName) return 1;\n                    const m = s.match(/\\+(\\d+)$/);\n                    return m ? parseInt(m[1]) : 1;\n                };\n                return getNum(b.name) - getNum(a.name);\n            });\n            updateData = guestList.filter((_, i) => i !== matchedIndices[0].index);\n          }\n        }\n      }\n    } catch (e) {\n      error = '我腦袋壞去，突然不知道處理這些事情了...';\n    }\n}\n\n// === Post-Update Logic ===\n// Determine final state for reply\nconst finalLeaveList = (updateType === 'leave' && !error && updateData) ? updateData.map(d => d.id) : leaveList;\nconst finalGuestList = (updateType === 'guest' && !error && updateData) ? updateData : guestList;\n\n// Corrected guestCapacity calculation: Total Capacity - (Season Members - Final Absentees)\nconst guestCapacity = Math.max(0, totalCapacity - (seasonTotal - finalLeaveList.length));\n\n// Calculate final participants list\nconst finalParticipants = [];\nseasonMembers.forEach(id => {\n  if (!finalLeaveList.includes(id)) {\n    finalParticipants.push({\n      name: getName(peopleMap.get(id) || {}) || \"未知球員\",\n      type: 'season'\n    });\n  }\n});\n\nfinalGuestList.forEach(name => {\n  finalParticipants.push({\n    name: name || \"未知朋友\",\n    type: 'guest'\n  });\n});\n\nreturn {\n  parser: aggregate,\n  eventPageId: eventPage.id,\n  eventDate: targetDate,\n  maxSlots: guestCapacity,\n  fee: getNumber(quarterInfo, '零打費用'),\n  updateType,\n  updateData,\n  error,\n  isSeasonPlayer: isSelfSeasonPlayer,\n  finalParticipants,\n  finalLeaveNames: finalLeaveList.map(id => {\n      const p = peopleMap.get(id);\n      return p ? getName(p) : \"未知球員\";\n  })\n};"
       },
-      "id": "a836bd61-4e3e-4602-97c2-a93c20ccce61",
+      "id": "7e669167-a416-4546-b9fc-b349fcdc47c1",
       "name": "Registration Logic Processor",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        77648,
-        88224
+        87696,
+        93744
       ]
     },
     {
       "parameters": {},
-      "id": "65ce84f5-8799-4e80-a87d-109af2482a6b",
+      "id": "2e726077-f56c-4ef8-bbce-470b9b163eb6",
       "name": "Sync Registration",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
       "position": [
-        77424,
-        88224
+        87472,
+        93744
       ]
     },
     {
       "parameters": {},
-      "id": "adce88e4-ce92-4a8b-9186-d27a3006b1fa",
+      "id": "5537abf6-b87d-4e68-a1eb-a7b5edf997ec",
       "name": "Sync Notion Data",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
       "position": [
-        77200,
-        88752
+        87248,
+        94272
       ]
     },
     {
       "parameters": {
         "jsCode": "const parser = $(\"Registration Parser\").item.json;\nconst resolve = $(\"Resolve Registration Target\").first().json;\n\n// Robust property getters\nconst getRegisteredNameId = (item) => (item.properties?.['Registered name']?.relation?.[0]?.id || item.property_registered_name?.[0]);\nconst getCustomName = (item) => (item.properties?.['Custom Name']?.rich_text?.[0]?.plain_text || item.property_custom_name);\nconst getUserId = (item) => (item.properties?.['user_id']?.title?.[0]?.plain_text || item.property_user_id);\nconst getName = (item) => (item.properties?.['Name']?.title?.[0]?.plain_text || item.property_name || item.name);\n\nlet targetPersonId = null;\nlet targetPersonName = \"Unknown\";\n\ntry {\n  if (resolve.type === 'self') {\n    targetPersonId = resolve.targetPersonId;\n    targetPersonName = resolve.targetName;\n  } else if (resolve.type === 'mention') {\n    const targetUser = $(\"Get Target User (Mention)\").item.json;\n    targetPersonId = getRegisteredNameId(targetUser);\n    targetPersonName = getCustomName(targetUser) || getUserId(targetUser);\n  } else {\n    const targetPerson = $(\"Get Target Person (By Name)\").item.json;\n    targetPersonId = targetPerson.id;\n    targetPersonName = getName(targetPerson) || parser.targetName;\n  }\n} catch (e) {\n  // If lookup failed, we still have the name from parser if provided\n  targetPersonName = parser.targetName || \"Unknown\";\n}\n\nreturn {\n  ...parser,\n  actorIsAdmin: resolve.isAdmin,\n  targetPersonId,\n  targetPersonName\n};"
       },
-      "id": "76eb5b7b-e079-428b-8e40-dad4df2aa34e",
+      "id": "270b7e5a-d509-45bd-9318-a3f90af27e9d",
       "name": "Aggregate Target",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        77200,
-        88096
+        87248,
+        93616
       ]
     },
     {
@@ -322,13 +322,13 @@
         },
         "options": {}
       },
-      "id": "3e1a38b0-75cb-4bf7-806f-99a230113b07",
+      "id": "46301d7a-c1e9-45fc-bd9b-f59e6249c4bb",
       "name": "Get Target Person (By Name)",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        76976,
-        88128
+        87024,
+        93640
       ],
       "credentials": {
         "notionApi": {
@@ -359,13 +359,13 @@
         },
         "options": {}
       },
-      "id": "ca14c87c-dc22-4c07-94bb-a31064458065",
+      "id": "2110d648-879c-41b1-8629-aaaa7af3796e",
       "name": "Get Target User (Mention)",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        76976,
-        88320
+        87024,
+        93832
       ],
       "credentials": {
         "notionApi": {
@@ -454,26 +454,26 @@
         },
         "options": {}
       },
-      "id": "27ebae54-80c9-412b-b12b-15953ca552fd",
+      "id": "90675b9f-9e5c-401b-b2fd-3ecdb0340f99",
       "name": "Registration Target Switch",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        76752,
-        88160
+        86800,
+        93680
       ]
     },
     {
       "parameters": {
         "jsCode": "const parser = $(\"Registration Parser\").item.json;\nconst actor = $input.item.json;\n\n// Robust property getters\nconst getRegisteredNameId = (item) => (item.properties?.['Registered name']?.relation?.[0]?.id || item.property_registered_name?.[0]);\nconst getCustomName = (item) => (item.properties?.['Custom Name']?.rich_text?.[0]?.plain_text || item.property_custom_name);\nconst getUserId = (item) => (item.properties?.['user_id']?.title?.[0]?.plain_text || item.property_user_id);\nconst getIsAdmin = (item) => (item.properties?.['is_admin']?.checkbox ?? item.property_is_admin ?? false);\n\nif (parser.isSelf) {\n  return [\n    {\n      json: {\n        type: 'self',\n        targetPersonId: getRegisteredNameId(actor),\n        targetName: getCustomName(actor) || getUserId(actor),\n        isAdmin: getIsAdmin(actor) === true,\n        branch: 0\n      }\n    }\n  ];\n}\n\nif (parser.targetUserId) {\n  return [\n    {\n      json: {\n        type: 'mention',\n        targetUserId: parser.targetUserId,\n        isAdmin: getIsAdmin(actor) === true,\n        branch: 1\n      }\n    }\n  ];\n}\n\nreturn [\n  {\n    json: {\n      type: 'name',\n      targetName: parser.targetName,\n      isAdmin: getIsAdmin(actor) === true,\n      branch: 2\n    }\n  }\n];"
       },
-      "id": "5332de18-4a4b-410d-a43c-bce976602105",
+      "id": "df8d237d-e40f-41a7-8832-576c436cd0a1",
       "name": "Resolve Registration Target",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        76528,
-        88176
+        86576,
+        93696
       ]
     },
     {
@@ -499,13 +499,13 @@
         },
         "options": {}
       },
-      "id": "8b9dfcad-6000-4b1a-9824-df96fe1dd591",
+      "id": "47d03142-9ef1-47bd-b7de-0ac4903175a7",
       "name": "Get Actor User",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        76304,
-        88176
+        86352,
+        93696
       ],
       "credentials": {
         "notionApi": {
@@ -518,13 +518,13 @@
       "parameters": {
         "jsCode": "const event = $(\"active\").item.json;\nconst msg = event.message;\n// Remove @Dobby case-insensitive, then trim\nconst text = msg.text.replace(/@Dobby/i, \"\").trim();\n\nconst commandRegex = /(\\+1|\\+2|-1|假|銷假)/;\nconst match = text.match(commandRegex);\nconst command = match ? match[1] : null;\n\nlet targetName = null;\nlet targetUserId = null;\nlet parserError = null;\n\nif (command) {\n  const rawTarget = text.replace(commandRegex, \"\").trim();\n  if (rawTarget) {\n    if (rawTarget.startsWith(\"@\")) {\n      const mentions = msg.mention?.mentions || [];\n      const cleanTarget = rawTarget.substring(1);\n      if (mentions.length > 0) {\n        targetUserId = mentions[0].userId;\n        targetName = cleanTarget;\n      } else {\n        targetName = cleanTarget;\n      }\n    } else {\n      parserError = \"指令格式錯誤：指定對象需使用 @Name\";\n      targetName = rawTarget;\n    }\n  }\n}\n\nreturn {\n  command,\n  targetName,\n  targetUserId,\n  parserError,\n  originalText: msg.text,\n  isSelf: !targetName && !targetUserId && !parserError,\n  actorUserId: event.source.userId\n};"
       },
-      "id": "50d977c9-89af-43b1-b2ee-40ccc87d26c5",
+      "id": "284b04fb-7267-434b-8b1b-9739830153d2",
       "name": "Registration Parser",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        76080,
-        88400
+        86128,
+        93912
       ]
     },
     {
@@ -573,21 +573,21 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        76080,
-        86560
+        86128,
+        92080
       ],
-      "id": "86944637-c5f9-4922-a398-fc9e2c9f2d45",
+      "id": "eb312c7d-ce48-47b6-abdb-c8615b73cd5c",
       "name": "Call 'Notion Badminton update user display_name'"
     },
     {
       "parameters": {},
-      "id": "633e1de9-a7d8-4af4-ab06-fd8cdf477721",
+      "id": "7b6fcc45-abdf-43af-ad88-3ab56299db9e",
       "name": "Manual Trigger (Push Test)",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        73840,
-        86288
+        83888,
+        91808
       ]
     },
     {
@@ -623,26 +623,26 @@
         },
         "options": {}
       },
-      "id": "9cab7c95-d42a-48ca-b391-f4efaafbfa12",
+      "id": "840fb67b-5ddc-429d-a4d3-dec6fbefcb77",
       "name": "Skip Auto Reply If Admin",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        77872,
-        89296
+        87920,
+        94816
       ]
     },
     {
       "parameters": {
         "jsCode": "// Get original event\nconst originalEvent = $(\"is command\").item.json;\n\n// Get user query results from Notion\nconst users = $input.all();\nconst hasValidUser = users.length > 0 && users[0].json && users[0].json.id;\n\nlet isAdmin = false;\nif (hasValidUser) {\n  const user = users[0].json;\n  // Robust property getter\n  isAdmin = (user.properties?.['is_admin']?.checkbox ?? user.property_is_admin ?? false);\n}\n\n// Return event with admin flag as array\nreturn [{\n  json: {\n    ...originalEvent,\n    _is_admin: isAdmin\n  }\n}];"
       },
-      "id": "6af8af7b-a053-4429-8f90-6970395ed445",
+      "id": "97b6dc58-c544-44c3-addf-6c90398c5649",
       "name": "Extract Admin For Auto Reply",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        77648,
-        89296
+        87696,
+        94816
       ]
     },
     {
@@ -669,13 +669,13 @@
         },
         "options": {}
       },
-      "id": "fdcf6d04-437f-4160-972c-7e939c20f4d0",
+      "id": "0588abb5-9af5-4b79-81e8-a40afab7f61c",
       "name": "Check Admin Before Auto Reply",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        77424,
-        89296
+        87472,
+        94816
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -689,13 +689,13 @@
       "parameters": {
         "jsCode": "// Get original event from 'is command'\nconst originalEvent = $(\"is command\").item.json;\n\n// Get user query results from Notion\nconst users = $input.all();\nconst hasValidUser = users.length > 0 && users[0].json && users[0].json.id;\n\nlet isAdmin = false;\nif (hasValidUser) {\n  const user = users[0].json;\n  // Robust property getter\n  isAdmin = (user.properties?.['is_admin']?.checkbox ?? user.property_is_admin ?? false);\n}\n\n// Merge admin status into event and return as array\nreturn [{\n  json: {\n    ...originalEvent,\n    _is_admin: isAdmin\n  }\n}];"
       },
-      "id": "d687b818-bd4f-402c-b705-443e4a798883",
+      "id": "a8c9c510-21ff-43e4-853c-16ecf6eee219",
       "name": "Merge Admin Into Event",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        75408,
-        88320
+        85456,
+        93832
       ]
     },
     {
@@ -722,13 +722,13 @@
         },
         "options": {}
       },
-      "id": "02046e62-6067-47ab-8644-b5df85882513",
+      "id": "35c40980-0669-4001-99d9-36c06ccf8a28",
       "name": "取得使用者表 (lazy)",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        75184,
-        88320
+        85232,
+        93832
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -752,13 +752,13 @@
         },
         "options": {}
       },
-      "id": "8c06d695-6a0e-4217-ba7d-0a3f52518197",
+      "id": "fd22e2e7-7f53-4956-90fb-5b4669401665",
       "name": "Set Environment (Production)",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        74064,
-        86096
+        84112,
+        91616
       ]
     },
     {
@@ -775,13 +775,13 @@
         },
         "options": {}
       },
-      "id": "3dfa84f5-fe13-40e4-9340-4205c27f538a",
+      "id": "306b92bb-d9df-4be9-bdb0-089d190c5ab6",
       "name": "Set Environment (Test)",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        74064,
-        86288
+        84112,
+        91808
       ]
     },
     {
@@ -795,13 +795,13 @@
         "jsonBody": "={{ { \"to\": \"C9fb61df21d9118e77d6e3065716fc08a\", \"messages\": $json.messages } }}",
         "options": {}
       },
-      "id": "aa16b91e-e0d0-4242-b41c-a18326bb21a9",
+      "id": "1bd6efd4-26d0-436c-8e56-f9842f03eba4",
       "name": "push Dobby",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        76080,
-        86288
+        86128,
+        91808
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -821,13 +821,13 @@
         "jsonBody": "={{ { \"to\": \"U2a0a2c5054c4fa12b78a1d059411e39c\", \"messages\": $json.messages } }}",
         "options": {}
       },
-      "id": "73b17830-2227-4db6-83b8-1ac8945916b9",
+      "id": "048ae6ce-d92d-40c5-93af-9a695311be90",
       "name": "push 球來就打 (lab)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        76080,
-        86096
+        86128,
+        91616
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -860,61 +860,61 @@
         },
         "options": {}
       },
-      "id": "3475ed2e-1d59-4cd1-9aae-c764ee682404",
+      "id": "cb772365-6b6a-40d2-a1d4-9043086f8b60",
       "name": "判斷 Push 環境",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        75856,
-        86192
+        85904,
+        91712
       ]
     },
     {
       "parameters": {},
-      "id": "fa23afe4-8f98-4968-a6c4-482102b4765c",
+      "id": "22e58fa2-b52d-4856-ba00-a4a92c1fa8d1",
       "name": "Merge Triggers",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
       "position": [
-        74288,
-        86192
+        84336,
+        91712
       ]
     },
     {
       "parameters": {
         "jsCode": "const messages = $input.all().map(item => item.json)\n\n// 從 metadata (Push) 獲取 environment\nconst metadataNode = $(\"metadata (Push)\").first();\nconst environment = metadataNode?.json?.environment || \"production\";\n\nreturn {\n  messages,\n  environment\n}"
       },
-      "id": "e33d8beb-57b9-488f-885c-7a7865ef802c",
+      "id": "d132570f-a416-4c87-87e3-30251633eb12",
       "name": "組起來 (Push)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        75632,
-        86192
+        85680,
+        91712
       ]
     },
     {
       "parameters": {
         "jsCode": "const quarterInfo = $('取得該季資訊 (Push)').first().json;\nconst metadata = $('metadata (Push)').first().json;\n\n// Robust property getters\nconst getNumber = (item, key) => (item.properties?.[key]?.number || item[`property_${key.toLowerCase()}`] || 0);\nconst getFormulaNumber = (item, key) => (item.properties?.[key]?.formula?.number || item[`property_${key.toLowerCase()}`] || 0);\nconst getName = (item) => (item.properties?.['Name']?.title?.[0]?.plain_text || item.property_name || item.name);\nconst getDate = (item) => (item.properties?.['時間']?.date?.start || (typeof item.property_時間 === 'string' ? item.property_時間 : item.property_時間?.start));\n\n// 從不同來源彙整資訊\nconst quarterData = {\n  fee: getNumber(quarterInfo, '零打費用') || metadata.price,\n  memberCount: getFormulaNumber(quarterInfo, '報名人數') || 0,\n  defaultCourts: metadata.courts // Fallback to metadata if not in Quarter DB\n};\n\n// 取得當前節點 (Event) 的資料\nconst targetDate = metadata.nextSaturdayDateText;\nconst allEvents = $('取得打球日 (Push)').all().map(item => item.json);\n\nconst eventPage = allEvents.find(page => {\n  const startTime = getDate(page);\n  return startTime && startTime.startsWith(targetDate);\n});\n\nif (!eventPage) {\n  return [\n    {\n      \"type\": \"text\",\n      \"text\": `⚠️ 找不到 ${targetDate} 的打球日活動。\\n請確認 Notion 行事曆是否已建立該日期的頁面。`\n    }\n  ];\n}\n\n// Get People Map\nconst peopleData = $('Get People Next (Push)').all().map(item => item.json);\nconst peopleMap = new Map();\npeopleData.forEach(p => peopleMap.set(p.id, p));\n\nconst eventData = {\n  type: eventPage.properties?.['類型']?.select?.name || eventPage.property_類型,\n  timeStart: getDate(eventPage),\n  courtOverride: getNumber(eventPage, '場地數'),\n  absenteesRelations: eventPage.properties?.['請假人']?.relation || eventPage.property_請假人 || [],\n  absenteesCount: (eventPage.properties?.['請假人']?.relation?.length ?? eventPage.property_請假人?.length ?? 0)\n};\n\n// 1. 檢查是否暫停\nif (eventData.type && eventData.type.includes('暫停')) {\n  return [\n    {\n      \"type\": \"text\",\n      \"text\": `📅 ${targetDate}\\n\\n🛑 本週打球暫停 (Suspended)\\n休息是為了走更長遠的路！`\n    }\n  ];\n}\n\n// 2. 計算邏輯\n// 場地數：優先使用 Event Override，否則使用 Quarter Default (or Metadata default)\nconst finalCourts = eventData.courtOverride || quarterData.defaultCourts;\nconst courtsDensity = 7; // 每面場地 7 人\n\n// 總請假人數：Event 紀錄的請假人 + 指令參數額外扣除的 (metadata.offCounts)\nconst manualOffCounts = Number(metadata.offCounts) || 0;\nconst totalAbsentees = eventData.absenteesCount + manualOffCounts;\n\n// Resolve Names\nconst absenteeNames = eventData.absenteesRelations.map(r => {\n    const id = r.id || r;\n    const person = peopleMap.get(id);\n    return getName(person || {});\n}).filter(n => n);\n\nconst leaveString = absenteeNames.length > 0 ? `請假：${absenteeNames.join(', ')}` : `請假：無`;\n\n// 應到人數 (季租 - 請假)\nconst expectedMembers = quarterData.memberCount - totalAbsentees;\n\n// 零打名額\nconst totalSlots = finalCourts * courtsDensity;\nconst availableSlots = Math.max(0, totalSlots - expectedMembers);\n\n// 3. 格式化輸出\nconst dateStr = eventData.timeStart ? eventData.timeStart.split('T')[0] : targetDate;\n\nfunction generateNumberedListString(number) {\n  if (number <= 0) return '(無名額)';\n  const lines = [];\n  for (let i = 1; i <= number; i++) {\n    lines.push(`${i}.`);\n  }\n  return lines.join('\\n');\n}\n\nreturn [\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${dateStr} 不能到請喊聲`,\n      leaveString,\n      `場地：${finalCourts} 面`,\n      `應到：${expectedMembers} 人`,\n      `零打名額：${availableSlots}人 $${quarterData.fee}/人`\n    ].join('\\n')\n  },\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${dateStr}`,\n      `零打名額 ${availableSlots} 人 | $${quarterData.fee}/人`, \n      `${generateNumberedListString(availableSlots)}`\n    ].join('\\n')\n  }\n];"
       },
-      "id": "c619b7a8-1ef3-492f-9d56-02501bfcbef6",
+      "id": "712727c5-6c33-40dd-9613-b57d0a48d77b",
       "name": "下次打球 v2 (Push)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        75408,
-        86192
+        85456,
+        91712
       ]
     },
     {
       "parameters": {},
-      "id": "92cfc9e8-dfba-4046-91f2-507b04895a1f",
+      "id": "b8d7fea0-6525-4fbc-87f1-dbe6665f7d8e",
       "name": "Merge (Push)",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
       "position": [
-        75184,
-        86192
+        85232,
+        91712
       ]
     },
     {
@@ -933,13 +933,13 @@
         "filterJson": "{}",
         "options": {}
       },
-      "id": "07e2ad64-23c6-4904-aa86-a5e80a05bb7c",
+      "id": "9fe8d313-ee14-48e4-a9d7-3efc55ae830d",
       "name": "Get People Next (Push)",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        74960,
-        86096
+        85008,
+        91616
       ],
       "credentials": {
         "notionApi": {
@@ -964,13 +964,13 @@
         "filterJson": "={{ JSON.stringify({ and: [{ property: '時間', date: { equals: $json.nextSaturdayDateText } }] }) }}",
         "options": {}
       },
-      "id": "fcdcdd17-78b7-4a1c-9549-0b88f6b10692",
+      "id": "34dd04a7-c724-4ff2-a7d6-6ff61b22164b",
       "name": "取得打球日 (Push)",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        74960,
-        86288
+        85008,
+        91808
       ],
       "credentials": {
         "notionApi": {
@@ -1003,13 +1003,13 @@
         },
         "options": {}
       },
-      "id": "8f1287a6-9170-4e6a-ba67-7abca2fe9e83",
+      "id": "4dae6e05-17c4-4dd6-a6f0-121f5829662e",
       "name": "取得該季資訊 (Push)",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        74736,
-        86096
+        84784,
+        91616
       ],
       "credentials": {
         "notionApi": {
@@ -1023,13 +1023,13 @@
         "mode": "runOnceForEachItem",
         "jsCode": "function getNextSaturday () {\n  const now = DateTime.now();\n  const currentWeekday = now.weekday;\n  const daysUntilSaturday = ((6 - currentWeekday + 7) % 7) || 7;\n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter;\n  return `${year}-Q${quarter}`;\n}\n\nfunction getNextSaturdayDateText () {\n  const nextSaturday = getNextSaturday()\n  return nextSaturday.toFormat('yyyy-MM-dd')\n}\n\nconst DEFAULT_OFF_COUNTS = 0\nconst DEFAULT_COURT = 2\nconst DEFAULT_PRICE = 170\n\n// 從上游獲取 environment\nconst environment = $json.environment || \"production\";\n\nreturn {\n  nextSaturdayQuarter: getNextSaturdayQuarter(),\n  nextSaturdayDateText: getNextSaturdayDateText(),\n  offCounts: DEFAULT_OFF_COUNTS,\n  courts: DEFAULT_COURT,\n  price: DEFAULT_PRICE,\n  environment: environment\n}"
       },
-      "id": "31a00984-91d5-47c2-ac03-1fc36bdf896e",
+      "id": "6b8c0b63-ed93-4e7f-98b7-38684bd7115f",
       "name": "metadata (Push)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        74512,
-        86192
+        84560,
+        91712
       ]
     },
     {
@@ -1046,21 +1046,21 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        73840,
-        86096
+        83888,
+        91616
       ],
-      "id": "65a4a2bc-be36-4b04-bc81-101d5b7fa2fa",
+      "id": "2e479931-cee9-47d9-b65f-5291b75a2f9f",
       "name": "Schedule Trigger"
     },
     {
       "parameters": {},
-      "id": "9f2db222-e2c5-4689-99e2-1052abccb4a7",
+      "id": "eef17d96-ce48-498f-b2a8-54e0ce48af3a",
       "name": "Merge User Management",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
       "position": [
-        75856,
-        86560
+        85904,
+        92080
       ]
     },
     {
@@ -1090,13 +1090,13 @@
         },
         "options": {}
       },
-      "id": "e0dd9b77-cd7d-4ac2-b7fe-143d54f43178",
+      "id": "a2db91a9-5208-4252-95d6-555f771bdaf7",
       "name": "更新使用者",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        75632,
-        86512
+        85680,
+        92032
       ],
       "credentials": {
         "notionApi": {
@@ -1110,13 +1110,13 @@
         "mode": "runOnceForEachItem",
         "jsCode": "// 準備更新資料\nconst data = $json;\nconst currentGroups = data.currentGroups || [];\nconst currentMultiChat = data.currentMultiChat || [];\nconst groupId = data.currentGroupId;\nconst roomId = data.currentRoomId;\n\n// 分別處理 groups 和 multi-chat（去重）\nlet updatedGroups = [...currentGroups];\nlet updatedMultiChat = [...currentMultiChat];\n\n// 如果來自群組，更新 groups\nif (groupId && !updatedGroups.includes(groupId)) {\n  updatedGroups.push(groupId);\n}\n\n// 如果來自聊天室，更新 multi-chat\nif (roomId && !updatedMultiChat.includes(roomId)) {\n  updatedMultiChat.push(roomId);\n}\n\nreturn {\n  ...data,\n  updatedGroups: updatedGroups,\n  updatedMultiChat: updatedMultiChat\n};"
       },
-      "id": "c6951bf4-85c3-4757-b1fd-ee700902bd50",
+      "id": "af178266-0288-4ecf-b2f6-fd2b7f7e6631",
       "name": "Prepare Update Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        75408,
-        86512
+        85456,
+        92032
       ]
     },
     {
@@ -1143,13 +1143,13 @@
         },
         "options": {}
       },
-      "id": "fa48676c-ae42-42b5-8f4e-a431bfab98cf",
+      "id": "e19a1d20-c48e-4046-97f0-964d77c22584",
       "name": "User Exists Switch",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        75184,
-        86560
+        85232,
+        92080
       ]
     },
     {
@@ -1157,13 +1157,13 @@
         "mode": "runOnceForEachItem",
         "jsCode": "const users = $('取得使用者表').all();\nconst source = $('Check User Source').item.json.source;\nconst sourceUserId = source.userId;\n\n// 分別取得 groupId 和 roomId\nconst currentGroupId = source.groupId || null;\nconst currentRoomId = source.roomId || null;\n\n// 檢查是否有有效的使用者資料\nconst hasValidUser = users.length > 0 && users[0].json && users[0].json.id;\n\nif (!hasValidUser) {\n  return {\n    userExists: false,\n    userId: sourceUserId,\n    currentGroupId: currentGroupId,\n    currentRoomId: currentRoomId\n  };\n}\n\n// 使用者存在，返回使用者資料\nconst user = users[0].json;\n\n// Robust property getters\nconst getNumber = (item, key) => (item.properties?.[key]?.number || item[`property_${key.toLowerCase()}`] || 0);\nconst getMultiSelect = (item, key) => (item.properties?.[key]?.multi_select?.map(s => s.name) || item[`property_${key.toLowerCase()}`] || []);\n\nreturn {\n  userExists: true,\n  userId: sourceUserId,\n  notionPageId: user.id,\n  currentMessageCount: getNumber(user, 'message_counts'),\n  currentGroups: getMultiSelect(user, 'groups'),\n  currentMultiChat: getMultiSelect(user, 'multi-chat'),\n  currentGroupId: currentGroupId,\n  currentRoomId: currentRoomId\n};"
       },
-      "id": "547d7fee-e329-4e56-ac22-1aa5c164456c",
+      "id": "0606b2fa-760c-4984-afc9-24ffc000749e",
       "name": "Check User Exists",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        74960,
-        86560
+        85008,
+        92080
       ]
     },
     {
@@ -1190,13 +1190,13 @@
         },
         "options": {}
       },
-      "id": "70e6b974-ef52-415e-b76d-cc0a2044e688",
+      "id": "7ca2961c-d6fc-4b7b-b91a-0adb12e0cd3c",
       "name": "Check User Source",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        74512,
-        88032
+        84560,
+        93544
       ]
     },
     {
@@ -1237,13 +1237,13 @@
         },
         "options": {}
       },
-      "id": "89c3854b-fba7-4836-9678-b309e8171b70",
+      "id": "379530d5-dc1d-495d-a731-e14bc0da04c2",
       "name": "新增使用者",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        75632,
-        86704
+        85680,
+        92224
       ],
       "credentials": {
         "notionApi": {
@@ -1276,13 +1276,13 @@
         },
         "options": {}
       },
-      "id": "25ae1337-7f49-4125-a859-ead4c481b111",
+      "id": "604379b3-a932-4982-81b6-8d21961f9910",
       "name": "取得使用者表",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        74736,
-        86560
+        84784,
+        92080
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -1296,13 +1296,13 @@
       "parameters": {
         "jsCode": "const blocks = $('歡迎訊息 child blocks').all().map(item => item.json);\nconst webhookData = $('Webhook').first().json;\nconst joinedUserId = webhookData.body.events[0].joined.members[0].userId;\nconst managerId = \"U2a0a2c5054c4fa12b78a1d059411e39c\";\n\nconst validBlocks = blocks.filter(b => b.content && b.content.trim() !== \"\");\nlet templateText = validBlocks.map(b => {\n    if (b.type === 'bulleted_list_item') {\n        return `• ${b.content}`;\n    }\n    return b.content;\n}).join('\\n');\n\nif (!templateText) templateText = \"歡迎！ (Welcome Message Empty)\";\n\n// 建立 substitution 物件（使用 textV2 格式）\nconst substitution = {};\n\nif (templateText.includes('{NEW_FRIEND}')) {\n    substitution.NEW_FRIEND = {\n        type: \"mention\",\n        mentionee: {\n            type: \"user\",\n            userId: joinedUserId\n        }\n    };\n}\n\nif (templateText.includes('{MANAGER}')) {\n    substitution.MANAGER = {\n        type: \"mention\",\n        mentionee: {\n            type: \"user\",\n            userId: managerId\n        }\n    };\n}\n\nconst result = {\n    type: \"textV2\",\n    text: templateText\n};\n\nif (Object.keys(substitution).length > 0) {\n    result.substitution = substitution;\n}\n\nreturn result;"
       },
-      "id": "fbc61f73-1b83-4ced-9c8d-67528c47eb81",
+      "id": "39c42fc0-3bee-4246-98eb-e099a89e96c6",
       "name": "Welcome Message Parser",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        78320,
-        89488
+        88368,
+        95008
       ]
     },
     {
@@ -1338,13 +1338,13 @@
         },
         "options": {}
       },
-      "id": "d17ac9ce-3295-4714-9cb1-a50f003626d6",
+      "id": "fbd63909-575c-47a8-98d0-e53f7cc00b65",
       "name": "Join Source Filter",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        77648,
-        89488
+        87696,
+        95008
       ]
     },
     {
@@ -1367,13 +1367,13 @@
           ]
         }
       },
-      "id": "82f910ab-d600-4cf7-97ab-33a18c98a25b",
+      "id": "06575305-1ea7-422a-85cb-e9db1da4449a",
       "name": "Event Switch",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
       "position": [
-        74736,
-        88448
+        84784,
+        93968
       ]
     },
     {
@@ -1388,13 +1388,13 @@
         "returnAll": true,
         "fetchNestedBlocks": true
       },
-      "id": "58b3229f-77fc-4214-b95e-5a7ee6daadfb",
+      "id": "a9256778-a73f-48c2-95ba-dcd9fa10011e",
       "name": "歡迎訊息 child blocks",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        78096,
-        89488
+        88144,
+        95008
       ],
       "credentials": {
         "notionApi": {
@@ -1426,13 +1426,13 @@
         },
         "options": {}
       },
-      "id": "1d2dbd73-3f43-4eb1-802a-b4903940543b",
+      "id": "e4b4dfa9-a08e-4cbf-bce4-b020b970005b",
       "name": "取得歡迎訊息",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        77872,
-        89488
+        87920,
+        95008
       ],
       "credentials": {
         "notionApi": {
@@ -1465,13 +1465,13 @@
         },
         "options": {}
       },
-      "id": "675fa54d-f84b-4658-902b-9a94cab16ffb",
+      "id": "8b27c4ec-789a-499c-a075-d477f94deab9",
       "name": "判斷 webhook url",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        78768,
-        88000
+        88816,
+        93520
       ]
     },
     {
@@ -1499,13 +1499,13 @@
         },
         "options": {}
       },
-      "id": "62e0b89b-812f-4570-a198-985a17dc4fb2",
+      "id": "d7cdcf6e-1741-4725-9992-b8b6cae17fa3",
       "name": "reply 球來就打 (lab)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        78992,
-        87904
+        89040,
+        93424
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -1543,13 +1543,13 @@
         },
         "options": {}
       },
-      "id": "c9474235-67d8-49b6-8d96-51609797e367",
+      "id": "2c5c0f11-65ec-4734-a390-fd654ac6abc1",
       "name": "reply Dobby",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        78992,
-        88096
+        89040,
+        93616
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -1566,13 +1566,13 @@
       "parameters": {
         "jsCode": "const userMessage = $('Split Out').first().json.message.text || '';\nconst quoteToken = $('Split Out').first().json.message.quoteToken;\nconst replyItems = $input.all().map(item => item.json);\n\n// Robust property getters\nconst getName = (item) => (item.properties?.['name']?.title?.[0]?.plain_text || item.name || '');\nconst getReply = (item) => (item.properties?.['reply']?.rich_text?.[0]?.plain_text || item.property_reply || '');\n\n// 檢查使用者訊息是否包含任一 name\nfor (const item of replyItems) {\n    const name = getName(item);\n    if (name && userMessage.includes(name)) {\n        return {\n            type: 'text',\n            text: getReply(item),\n            quoteToken: quoteToken\n        };\n    }\n}\n\n// 如果沒有匹配，不輸出任何東西（不回覆）\nreturn [];"
       },
-      "id": "54f9672f-6fe2-4ee1-bcce-5b87586faf90",
+      "id": "bba0dbd7-63bc-4040-a589-b337beb9c69c",
       "name": "Auto Reply Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        78320,
-        89296
+        88368,
+        94816
       ]
     },
     {
@@ -1588,13 +1588,13 @@
         },
         "options": {}
       },
-      "id": "09b23f1e-3f8d-4084-a29c-bfe401fc32da",
+      "id": "c21c0896-d4f3-4b9d-bcba-5b7f2887d68c",
       "name": "取得 auto reply message",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        78096,
-        89296
+        88144,
+        94816
       ],
       "credentials": {
         "notionApi": {
@@ -1607,13 +1607,13 @@
       "parameters": {
         "jsCode": "const blocks = $('付款資訊 child blocks').all().map(item => item.json);\nconst quoteToken = $('Split Out').first().json.message.quoteToken;\n\nconst validBlocks = blocks.filter(b => b.content && b.content.trim() !== \"\");\nlet templateText = validBlocks.map(b => {\n    if (b.type === 'bulleted_list_item') {\n        return `• ${b.content}`;\n    }\n    return b.content;\n}).join('\\n');\n\nif (!templateText) templateText = \"目前沒有付款資訊 (PAYMENT Empty)\";\n\nreturn {\n    \"type\": \"text\",\n    \"text\": templateText,\n    \"quoteToken\": quoteToken\n};"
       },
-      "id": "1f724c7e-e057-466d-9e6b-5546909a90f3",
+      "id": "10d321e5-da8c-49cd-8994-65a238779b8e",
       "name": "Payment Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        78320,
-        87664
+        88368,
+        93184
       ]
     },
     {
@@ -1628,13 +1628,13 @@
         "returnAll": true,
         "fetchNestedBlocks": true
       },
-      "id": "4cd3cfe8-d6eb-472a-b466-0f890ba4ffe0",
+      "id": "aa7afd5a-d41f-43d6-addb-45df44b00295",
       "name": "付款資訊 child blocks",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        78096,
-        87664
+        88144,
+        93184
       ],
       "credentials": {
         "notionApi": {
@@ -1666,13 +1666,13 @@
         },
         "options": {}
       },
-      "id": "094fe0e3-9e8b-497f-90fd-81b512c34700",
+      "id": "6b3f1b63-c317-4225-a94f-96866cf73187",
       "name": "取得付款資訊",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        77872,
-        87664
+        87920,
+        93184
       ],
       "credentials": {
         "notionApi": {
@@ -1697,13 +1697,13 @@
         "filterJson": "{}",
         "options": {}
       },
-      "id": "5e7e7be5-0f00-4af5-935e-e32ecd328c7f",
+      "id": "71f0d39c-5981-43ee-b220-63e2b2e8f2f9",
       "name": "Get People for Announce",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        77424,
-        86704
+        87472,
+        92224
       ],
       "credentials": {
         "notionApi": {
@@ -1737,13 +1737,13 @@
         },
         "options": {}
       },
-      "id": "a275dc00-1240-4d45-8091-fc7fa84230a5",
+      "id": "9c3a48cd-7353-4968-9948-445b475d32a5",
       "name": "Get Calendar for Announce",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        77424,
-        86512
+        87472,
+        92032
       ],
       "alwaysOutputData": false,
       "credentials": {
@@ -1775,13 +1775,13 @@
         },
         "options": {}
       },
-      "id": "8b839fad-53c6-4341-a8c7-748240ebb217",
+      "id": "7327aef8-0fd2-419f-9cab-b8276111aace",
       "name": "Get Season Info for Announce",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        77200,
-        86512
+        87248,
+        92032
       ],
       "credentials": {
         "notionApi": {
@@ -1795,13 +1795,13 @@
         "mode": "runOnceForEachItem",
         "jsCode": "function getNextSaturday () {\n  const now = DateTime.now(); \n  const currentWeekday = now.weekday; \n  const daysUntilSaturday = ((6 - currentWeekday + 7) % 7) || 7; \n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter; \n  return `${year}-Q${quarter}`; \n}\n\nreturn {\n  targetQuarter: getNextSaturdayQuarter()\n}"
       },
-      "id": "78bb2e2a-7f8a-49c7-a7d5-c4eb57915d3a",
+      "id": "a7edbf75-d27c-40d3-92fc-1b0e3ea2db72",
       "name": "Announce Metadata",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        76976,
-        86784
+        87024,
+        92296
       ]
     },
     {
@@ -1812,10 +1812,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        78320,
-        86880
+        88368,
+        92392
       ],
-      "id": "080ae92f-2bd7-4015-9c1f-1438ce102094"
+      "id": "a7f2af97-d07a-4e72-af94-efe62e5499bb"
     },
     {
       "parameters": {
@@ -1829,13 +1829,13 @@
         "returnAll": true,
         "fetchNestedBlocks": true
       },
-      "id": "d4e81a12-fbbb-4f24-b61e-dac6c207cf55",
+      "id": "49418cb1-8d22-4305-a7e8-310f8b00dd02",
       "name": "最新公告 child blocks",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        77648,
-        86896
+        87696,
+        92416
       ],
       "credentials": {
         "notionApi": {
@@ -1867,13 +1867,13 @@
         },
         "options": {}
       },
-      "id": "c27aaeef-9f5b-4811-acbe-34ec8b10b151",
+      "id": "c0f424b2-5d85-4127-a293-9992c40396d6",
       "name": "取得最新公告",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        77424,
-        86896
+        87472,
+        92416
       ],
       "credentials": {
         "notionApi": {
@@ -1884,13 +1884,13 @@
     },
     {
       "parameters": {},
-      "id": "6d5d7998-a15e-42c6-ad49-49d3ea26e28a",
+      "id": "2b1d0b4a-9ae2-4cef-93aa-a860604fd44e",
       "name": "Merge",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
       "position": [
-        77200,
-        88560
+        87248,
+        94080
       ]
     },
     {
@@ -1949,13 +1949,13 @@
         },
         "options": {}
       },
-      "id": "a49cfdae-9a6a-4097-940a-1da900d4feb1",
+      "id": "c97b2016-b57d-4c3b-8a4e-d5201bda2a92",
       "name": "Flow Router (People)",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        76976,
-        88800
+        87024,
+        94320
       ]
     },
     {
@@ -2014,13 +2014,13 @@
         },
         "options": {}
       },
-      "id": "de5e0de2-e87b-4e88-8974-66c9b45ae577",
+      "id": "d3bb4be2-ee73-463b-bf15-93936ad9c006",
       "name": "Flow Router (Next)",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        76976,
-        88512
+        87024,
+        94032
       ]
     },
     {
@@ -2047,13 +2047,13 @@
         },
         "options": {}
       },
-      "id": "fa21cb19-6ccd-4c01-950c-669458825642",
+      "id": "a969fb00-41ea-4d81-84de-f13940c7cc91",
       "name": "Get People Next",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        76752,
-        88800
+        86800,
+        94320
       ],
       "credentials": {
         "notionApi": {
@@ -2066,13 +2066,13 @@
       "parameters": {
         "jsCode": "const seasonPage = $('Get Season Info Custom').first().json;\n// Optimize: Create a map for O(1) lookup\nconst peopleMap = new Map();\n$input.all().forEach(item => {\n    peopleMap.set(item.json.id, item.json);\n});\n\nconst quoteToken = $('Split Out').first().json.message.quoteToken;\n\nif (!seasonPage) {\n    return {\n        \"type\": \"text\",\n        \"text\": \"❌ 找不到季度資料\",\n        \"quoteToken\": quoteToken\n    };\n}\n\nconst quarterTitle = seasonPage.properties['季租時段']?.title?.[0]?.plain_text || \"未知季度\";\nconst relations = seasonPage.properties['報名人']?.relation || [];  \n\nif (relations.length === 0) {\n     return {\n        \"type\": \"text\",\n        \"text\": `🏸 ${quarterTitle} 尚無報名資料`,\n        \"quoteToken\": quoteToken\n    };\n}\n\nconst participantIds = relations.map(r => r.id);\nconst names = [];\n\nfor (const id of participantIds) {\n    const person = peopleMap.get(id); \n    let name = \"Unknown\";\n    if (person) {\n         if (person.properties?.['Name']?.title?.[0]?.plain_text) {\n             name = person.properties['Name'].title[0].plain_text;\n         } else if (person.name) {\n             name = person.name;\n         }\n    }\n    names.push(name);\n}\n\nreturn {\n    \"type\": \"text\",\n    \"text\": `🏸 ${quarterTitle} 報名名單 (${names.length}人)：\\n\\n${names.join('、')}`,\n    \"quoteToken\": quoteToken\n};"
       },
-      "id": "0997a12c-95da-4386-9503-85365fb05b88",
+      "id": "f0e1813d-1a37-4820-ab80-ad7a494387a7",
       "name": "Match Participants",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        78320,
-        89008
+        88368,
+        94528
       ]
     },
     {
@@ -2091,13 +2091,13 @@
         "filterJson": "{}",
         "options": {}
       },
-      "id": "c0265770-f635-4d53-a812-307965c45772",
+      "id": "e2290543-a68b-47bf-9dce-eeb75ac0a1a2",
       "name": "Get All People Global",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        78096,
-        89008
+        88144,
+        94528
       ],
       "credentials": {
         "notionApi": {
@@ -2130,13 +2130,13 @@
         },
         "options": {}
       },
-      "id": "17c5f111-5a2c-4c1b-b4e1-ec8dd081ade9",
+      "id": "27ae01f0-0f01-4f4e-bf03-aa017db3f63c",
       "name": "Get Season Info Custom",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        77872,
-        89008
+        87920,
+        94528
       ],
       "credentials": {
         "notionApi": {
@@ -2150,26 +2150,26 @@
         "mode": "runOnceForEachItem",
         "jsCode": "function getQuarter(date) {\n  const year = date.year;\n  const quarter = date.quarter;\n  return `${year}-Q${quarter}`;\n}\n\n// Use $json directly in runOnceForEachItem mode\nconst text = $json.message.text;\nlet arg = text.replace(/^@Dobby\\s+(participants|people|報名人)\\s*/i, '').trim();\n\nlet targetQuarter;\nif (arg) {\n    targetQuarter = arg.toUpperCase();\n} else {\n    targetQuarter = getQuarter(DateTime.now());\n}\n\nreturn {\n    targetQuarter\n}"
       },
-      "id": "8fa6f054-8e69-4972-81d6-822c26c26059",
+      "id": "6b35b79c-76a8-4bc2-b0a4-1c333d32a338",
       "name": "Season Metadata",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        77648,
-        89008
+        87696,
+        94528
       ]
     },
     {
       "parameters": {
         "jsCode": "const quarterInfo = $('取得該季資訊').first().json;\nconst metadata = $('metadata').first().json;\n\n// Robust property getters\nconst getNumber = (item, key) => (item.properties?.[key]?.number || item[`property_${key.toLowerCase()}`] || 0);\nconst getFormulaNumber = (item, key) => (item.properties?.[key]?.formula?.number || item[`property_${key.toLowerCase()}`] || 0);\nconst getName = (item) => (item.properties?.['Name']?.title?.[0]?.plain_text || item.property_name || item.name);\nconst getDate = (item) => (item.properties?.['時間']?.date?.start || (typeof item.property_時間 === 'string' ? item.property_時間 : item.property_時間?.start));\n\n// 從不同來源彙整資訊\nconst quarterData = {\n  fee: getNumber(quarterInfo, '零打費用') || metadata.price,\n  memberCount: getFormulaNumber(quarterInfo, '報名人數') || 0,\n  defaultCourts: metadata.courts // Fallback to metadata if not in Quarter DB\n};\n\n// 取得當前節點 (Event) 的資料\nconst targetDate = metadata.nextSaturdayDateText;\nconst allEvents = $('取得打球日').all().map(item => item.json);\n\nconst eventPage = allEvents.find(page => {\n  const startTime = getDate(page);\n  return startTime && startTime.startsWith(targetDate);\n});\n\nif (!eventPage) {\n  return [\n    {\n      \"type\": \"text\",\n      \"text\": `⚠️ 找不到 ${targetDate} 的打球日活動。\\n請確認 Notion 行事曆是否已建立該日期的頁面。`\n    }\n  ];\n}\n\n// Get People Map\nconst peopleData = $('Get People Next').all().map(item => item.json);\nconst peopleMap = new Map();\npeopleData.forEach(p => peopleMap.set(p.id, p));\n\nconst eventData = {\n  type: eventPage.properties?.['類型']?.select?.name || eventPage.property_類型,\n  timeStart: getDate(eventPage),\n  courtOverride: getNumber(eventPage, '場地數'),\n  absenteesRelations: eventPage.properties?.['請假人']?.relation || eventPage.property_請假人 || [],\n  absenteesCount: (eventPage.properties?.['請假人']?.relation?.length ?? eventPage.property_請假人?.length ?? 0)\n};\n\n// 1. 檢查是否暫停\nif (eventData.type && eventData.type.includes('暫停')) {\n  return [\n    {\n      \"type\": \"text\",\n      \"text\": `📅 ${targetDate}\\n\\n🛑 本週打球暫停 (Suspended)\\n休息是為了走更長遠的路！`\n    }\n  ];\n}\n\n// 2. 計算邏輯\n// 場地數：優先使用 Event Override，否則使用 Quarter Default (or Metadata default)\nconst finalCourts = eventData.courtOverride || quarterData.defaultCourts;\nconst courtsDensity = 7; // 每面場地 7 人\n\n// 總請假人數：Event 紀錄的請假人 + 指令參數額外扣除的 (metadata.offCounts)\nconst manualOffCounts = Number(metadata.offCounts) || 0;\nconst totalAbsentees = eventData.absenteesCount + manualOffCounts;\n\n// Resolve Names\nconst absenteeNames = eventData.absenteesRelations.map(r => {\n    const id = r.id || r;\n    const person = peopleMap.get(id);\n    return getName(person || {});\n}).filter(n => n);\n\nconst leaveString = absenteeNames.length > 0 ? `請假：${absenteeNames.join(', ')}` : `請假：無`;\n\n// 應到人數 (季租 - 請假)\nconst expectedMembers = quarterData.memberCount - totalAbsentees;\n\n// 零打名額 (Total Slots - Expected Members)\nconst totalSlots = finalCourts * courtsDensity;\nconst availableSlots = Math.max(0, totalSlots - expectedMembers);\n\n// 3. 格式化輸出\nconst dateStr = eventData.timeStart ? eventData.timeStart.split('T')[0] : targetDate;\n\nfunction generateNumberedListString(number) {\n  if (number <= 0) return '(無名額)';\n  const lines = [];\n  for (let i = 1; i <= number; i++) {\n    lines.push(`${i}.`);\n  }\n  return lines.join('\\n');\n}\n\nreturn [\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${dateStr} 不能到請喊聲`,\n      leaveString,\n      `場地：${finalCourts} 面`,\n      `應到：${expectedMembers} 人`,\n      `零打名額：${availableSlots}人 $${quarterData.fee}/人`\n    ].join('\\n')\n  },\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${dateStr}`,\n      `零打名額 ${availableSlots} 人 | $${quarterData.fee}/人`, \n      `${generateNumberedListString(availableSlots)}`\n    ].join('\\n')\n  }\n];"
       },
-      "id": "e88d8b07-77bd-4659-b668-bb31527f20e5",
+      "id": "dff74202-fd7d-4d39-a2d5-0dfe30f7fdc0",
       "name": "下次打球 v2",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        77424,
-        88688
+        87472,
+        94208
       ]
     },
     {
@@ -2188,13 +2188,13 @@
         "filterJson": "={{ JSON.stringify({ and: [{ property: '時間', date: { equals: $json.nextSaturdayDateText } }] }) }}",
         "options": {}
       },
-      "id": "17bc89e1-7730-46e4-9589-190e354d1a01",
+      "id": "560a7652-79ed-4f17-91a9-be02ec74f658",
       "name": "取得打球日",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        76752,
-        88512
+        86800,
+        94032
       ],
       "credentials": {
         "notionApi": {
@@ -2207,13 +2207,13 @@
       "parameters": {
         "jsCode": "const quoteToken = $('Split Out').all().map(item => item.json.message.quoteToken)[0]\n\nreturn [\n  {\n    \"type\":\"text\",\n    \"text\":[\n      '🛠️ 指令列表',\n      '----------',\n      '（提醒：中文請用全形）',\n      '',\n      '【查詢類】',\n      '1) 未繳費名單',\n      '@Dobby owe',\n      '@Dobby 欠',\n      '',\n      '2) 查看指令列表（本頁）',\n      '@Dobby command',\n      '@Dobby 指令',\n      '',\n      '3) 查詢季度報名人',\n      '@Dobby participants',\n      '@Dobby 報名人',\n      '別名：@Dobby people',\n      '',\n      '4) 查詢最新公告',\n      '@Dobby news',\n      '@Dobby 公告',\n      '別名：@Dobby announcement',\n      '',\n      '5) 查詢付款資訊',\n      '@Dobby payment',\n      '@Dobby 付款',\n      '',\n      '【報名 / 請假類】',\n      '1) 報名零打（1 位）',\n      '@Dobby +1',\n      '',\n      '2) 報名兩位（2 位）',\n      '@Dobby +2',\n      '',\n      '3) 取消報名',\n      '@Dobby -1',\n      '',\n      '4) 季租成員請假',\n      '@Dobby 假',\n      '',\n      '5) 季租成員銷假',\n      '@Dobby 銷假',\n    ].join('\\n'),\n    \"quoteToken\": quoteToken,\n    \"quickReply\": {\n      \"items\": [\n        {\n          \"type\": \"action\",\n          \"action\": {\n            \"type\": \"message\",\n            \"label\": \"未繳費名單\",\n            \"text\": \"@Dobby owe\"\n          }\n        },\n        {\n          \"type\": \"action\",\n          \"action\": {\n            \"type\": \"message\",\n            \"label\": \"指令列表\",\n            \"text\": \"@Dobby command\"\n          }\n        },\n        {\n          \"type\": \"action\",\n          \"action\": {\n            \"type\": \"message\",\n            \"label\": \"季度報名人\",\n            \"text\": \"@Dobby participants\"\n          }\n        },\n        {\n           \"type\": \"action\",\n           \"action\": {\n             \"type\": \"message\",\n             \"label\": \"最新公告\",\n             \"text\": \"@Dobby news\"\n           }\n        },\n        {\n           \"type\": \"action\",\n           \"action\": {\n             \"type\": \"message\",\n             \"label\": \"付款資訊\",\n             \"text\": \"@Dobby payment\"\n           }\n        }\n      ]\n    }\n  }\n]"
       },
-      "id": "2e03c0a8-4487-4d18-8c52-56e22c5ddd31",
+      "id": "9027624e-fedf-45fc-ac4f-baeb57891278",
       "name": "指令列表 message1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        78320,
-        87280
+        88368,
+        92800
       ]
     },
     {
@@ -2451,13 +2451,13 @@
         },
         "options": {}
       },
-      "id": "0203b4f9-9e41-4231-9dc6-acc5d9a9ab0c",
+      "id": "0a420c1d-0ec8-4fce-b615-25fda5e7ccf2",
       "name": "Command controller",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        75856,
-        87392
+        85904,
+        92912
       ]
     },
     {
@@ -2484,13 +2484,13 @@
         },
         "options": {}
       },
-      "id": "47d320e1-3194-494d-b8e3-29bb298c3a63",
+      "id": "90cd99cb-af26-40f7-88c8-a674f9796574",
       "name": "is command",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        74960,
-        88384
+        85008,
+        93904
       ]
     },
     {
@@ -2498,13 +2498,13 @@
         "mode": "runOnceForEachItem",
         "jsCode": "function getNextSaturday () {\n  const now = DateTime.now(); \n  const currentWeekday = now.weekday; \n  const daysUntilSaturday = ((6 - currentWeekday + 7) % 7) || 7; \n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter; \n  return `${year}-Q${quarter}`; \n}\n\nfunction getNextSaturdayDateText () {\n  const nextSaturday = getNextSaturday()\n  return nextSaturday.toFormat('yyyy-MM-dd')\n}\n\nreturn {\n  nextSaturdayQuarter: getNextSaturdayQuarter(),\n  nextSaturdayDateText: getNextSaturdayDateText(),\n}"
       },
-      "id": "d62b613d-0132-4852-abec-679a5080af2b",
+      "id": "8cd3134e-b321-4640-b1a7-a0162e358719",
       "name": "metadata1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        77872,
-        87088
+        87920,
+        92608
       ]
     },
     {
@@ -2539,13 +2539,13 @@
         },
         "options": {}
       },
-      "id": "3522c222-e406-444a-8071-0361c37bf105",
+      "id": "b06d911f-f96b-47cc-8de6-f514e4575ef8",
       "name": "Manager rules",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        76080,
-        89152
+        86128,
+        94672
       ]
     },
     {
@@ -2572,13 +2572,13 @@
         },
         "options": {}
       },
-      "id": "80400863-c26a-47bd-83ef-022c30c07bce",
+      "id": "16828296-0dee-459d-94cd-e6c0904b7864",
       "name": "if this user is manager",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        75632,
-        88320
+        85680,
+        93832
       ]
     },
     {
@@ -2586,13 +2586,13 @@
         "mode": "runOnceForEachItem",
         "jsCode": "function getNextSaturday () {\n  const now = DateTime.now(); \n  const currentWeekday = now.weekday; \n  const daysUntilSaturday = ((6 - currentWeekday + 7) % 7) || 7; \n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter; \n  return `${year}-Q${quarter}`; \n}\n\nfunction getNextSaturdayDateText () {\n  const nextSaturday = getNextSaturday()\n  return nextSaturday.toFormat('yyyy-MM-dd')\n}\n\nconst event = $json.message ? $json : $(\"active\").item.json;\nconst text = event.message?.text || '';\nconst queryIndex = text.indexOf('?');\nlet params = {};\n\nif (queryIndex !== -1) {\n  const queryString = text.substring(queryIndex + 1);\n  // URLSearchParams handles parsing efficiently\n  const urlParams = new URLSearchParams(queryString);\n  params = Object.fromEntries(urlParams.entries());\n}\n\nconst DEFAULT_OFF_COUNTS = 0\nconst DEFAULT_COURT = 2\nconst DEFAULT_PRICE = 170\n\nreturn {\n  nextSaturdayQuarter: getNextSaturdayQuarter(),\n  nextSaturdayDateText: getNextSaturdayDateText(),\n  offCounts: params['-'] ?? DEFAULT_OFF_COUNTS,\n  courts: params['c'] ?? DEFAULT_COURT,\n  price: DEFAULT_PRICE\n}"
       },
-      "id": "0923615f-f583-4912-ba61-51fdf74737a7",
+      "id": "00b7748c-d591-44b8-9113-5af186b0a60e",
       "name": "metadata",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        76304,
-        88688
+        86352,
+        94200
       ]
     },
     {
@@ -2619,13 +2619,13 @@
         },
         "options": {}
       },
-      "id": "03797ae8-003c-4a1e-9dff-b8ffe2f58976",
+      "id": "f4b1083c-6fa4-4d5d-8085-95227af7f9db",
       "name": "取得該季資訊",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        76528,
-        88800
+        86576,
+        94320
       ],
       "credentials": {
         "notionApi": {
@@ -2638,13 +2638,13 @@
       "parameters": {
         "jsCode": "const prevNodeName = $prevNode.name\n\nconst messages = $input.all().map(item => item.json)\n\nconst replyToken = $('active').all()[$runIndex].json.replyToken\n\nreturn {\n  messages,\n  replyToken\n}"
       },
-      "id": "471b708e-9f1f-43cf-8161-a64a2b118033",
+      "id": "62695cec-c363-438b-83af-a837599c3122",
       "name": "組起來",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        78544,
-        88000
+        88592,
+        93520
       ]
     },
     {
@@ -2652,87 +2652,87 @@
         "fieldToSplitOut": "body.events",
         "options": {}
       },
-      "id": "e0e8f232-2065-4692-836f-fb89b87319f7",
+      "id": "cc20f855-81f8-44b5-ad2f-f98178bb4437",
       "name": "Split Out",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        74064,
-        88032
+        84112,
+        93544
       ]
     },
     {
       "parameters": {},
-      "id": "c36f6a24-42db-4227-81ce-a7999aee1c60",
+      "id": "a643018a-e83d-4a06-9822-f34dff28cde5",
       "name": "Merge Branches 2",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
       "position": [
-        78096,
-        86880
+        88144,
+        92392
       ]
     },
     {
       "parameters": {},
-      "id": "9c5863be-75f6-44c9-9ce4-c227f79602ef",
+      "id": "a61c76e9-1f8b-4bdc-9e31-4b3876c2fd33",
       "name": "Merge Branches 1",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
       "position": [
-        77872,
-        86688
+        87920,
+        92200
       ]
     },
     {
       "parameters": {
         "jsCode": "return [{json:{done:true}}];"
       },
-      "id": "c9c09240-e671-4859-b7f0-dcbd6e5e2351",
+      "id": "b239bb4e-7cb9-44d0-ae03-07c9e2defb59",
       "name": "End Branch Blocks",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        77872,
-        86896
+        87920,
+        92416
       ]
     },
     {
       "parameters": {
         "jsCode": "return [{json:{done:true}}];"
       },
-      "id": "b4cc1fb2-46bf-4cc0-a525-a33862b79b67",
+      "id": "cbb5f5cc-bd88-41ff-b077-06e7929526d5",
       "name": "End Branch People",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        77648,
-        86704
+        87696,
+        92224
       ]
     },
     {
       "parameters": {
         "jsCode": "return [{json:{done:true}}];"
       },
-      "id": "4f2ee238-3841-4e65-a7e9-b0c49ec6fa20",
+      "id": "829bed40-a95d-4099-8fe4-5eb714f69bfd",
       "name": "End Branch Calendar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        77648,
-        86512
+        87696,
+        92032
       ]
     },
     {
       "parameters": {
         "jsCode": "const prevNodeName = $prevNode.name\n\nconst peopleName = $(prevNodeName).all().map(item => item.json.name)\n\nconst quoteToken = $('Split Out').all().map(item => item.json.message.quoteToken)[0]\n\nconst nextSaturdayQuarter = $('metadata1').first().json.nextSaturdayQuarter\n\nreturn [\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${nextSaturdayQuarter}`, \n      `💀 尚未繳費： ${peopleName.join(', ')}`,\n      '',\n      `✶ 如果已經付錢卻仍在這個名單上，應該是記帳精靈拖延症發作`\n    ].join('\\n'),\n    \"quoteToken\": quoteToken,\n  }\n]"
       },
-      "id": "e3fd578f-cb62-4c02-8f09-a7a4d232c04a",
+      "id": "83779644-0386-45ee-a4e8-c1e2734fcf85",
       "name": "未繳費 message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        78320,
-        87088
+        88368,
+        92608
       ]
     },
     {
@@ -2750,13 +2750,13 @@
         "filterJson": "={\n  \"property\":\"結清\",\n  \"formula\":{\n    \"checkbox\": {\n      \"equals\": false\n    }\n  }\n}",
         "options": {}
       },
-      "id": "6645a63c-5063-430b-99bc-7989d4651ba4",
+      "id": "800cb4af-a4c4-4b17-9d32-8dd99589018f",
       "name": "未繳費名單",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        78096,
-        87088
+        88144,
+        92608
       ],
       "credentials": {
         "notionApi": {
@@ -2789,13 +2789,13 @@
         },
         "options": {}
       },
-      "id": "e25c254b-1ebc-4456-a6cc-348c0f02e81c",
+      "id": "379ac78e-7452-4553-b59c-6828d8f3c926",
       "name": "active",
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
       "position": [
-        74288,
-        88032
+        84336,
+        93544
       ]
     },
     {
@@ -2804,13 +2804,13 @@
         "path": "6ffc18b9-7e3e-464a-9572-f35473e52d4d",
         "options": {}
       },
-      "id": "37c0f2b4-ce2f-4ea9-bdb2-a6712a4721ed",
+      "id": "20e0e49c-7ccd-4564-a01c-0ccb80adca23",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        73840,
-        88032
+        83888,
+        93544
       ],
       "webhookId": "6ffc18b9-7e3e-464a-9572-f35473e52d4d"
     }
@@ -3985,7 +3985,7 @@
     "timezone": "Asia/Taipei",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "95a96cbb-3d4b-489b-bc61-aad808197cb8",
+  "versionId": "2125ca79-a394-431b-adfb-4d736d17a82f",
   "meta": {
     "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
   },
