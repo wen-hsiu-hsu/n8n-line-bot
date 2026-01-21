@@ -83,7 +83,7 @@
 - `@Dobby -1`: 取消報名。
 - `@Dobby 假`: 季租球員請假。系統會立即扣除請假人數並釋出名額（使用 Post-Update Calculation）。
 - `@Dobby 銷假`: 季租球員取消請假。
-- `@Dobby {Name} {Command}`: (管理員) 代他人操作（支持 `@mention` 或自定義名稱）。
+- `@Dobby {Name} {Command}`: (管理員) 代他人操作（Name 必須以 `@` 開頭，例如 `@Dobby @Vic 假`）。
 
 ### Leave Policy (請假規則)
 - **資格限制**: 僅限該季度的 **季租球員 (Season Players)** 使用。非季租球員（或未被連結至人員清單的使用者）無法請假。
