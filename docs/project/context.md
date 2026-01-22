@@ -189,6 +189,8 @@
 當機器人被加入 `group` 或 `room` 時，會觸發 `取得歡迎訊息` 並回覆。
 
 #### 4. Batch Update User Display Names (批次更新使用者顯示名稱) (2026-01-14)
+**Workflow File**: `LineBot-Dobby-update-display_name.json`
+
 獨立的手動觸發 workflow，用於批次更新 USERS 資料庫中所有使用者的 `Custom Name` 欄位。
 
 **觸發方式**: 手動點擊 `Manual Trigger (Push Test)` 節點
@@ -255,6 +257,31 @@ Notion USERS (有 groups 的使用者)
 - 使用者必須在 `groups` 欄位中有群組 ID 才能被更新（因為 API 需要 groupId）
 - 如果使用者已離開群組，兩個 API 都會返回 404，該使用者不會被更新
 - `Custom Name` 欄位會被覆蓋為 LINE 上的最新 displayName
+
+#### 5. Scheduled Message Workflow (排程推播) (2026-01-22)
+**Workflow File**: `LineBot-Dobby-scheduled-message.json`
+
+獨立的排程工作流，每週定期推播打球資訊。
+
+**觸發方式**: 
+- `Schedule Trigger`: 每週特定時間觸發
+- `Manual Trigger`: 手動測試用
+
+**主要功能**:
+- 檢查本週打球狀態（是否暫停）
+- 計算剩餘零打名額
+- 推播訊息至 LINE 群組（包括 Dobby 和球來就打）
+
+**流程簡介**:
+1. `Set Environment`: 設定 Production/Test 環境變數
+2. `metadata (Push)`: 計算下週六日期、季度資訊
+3. `取得該季資訊`: 從 Notion 取得季度費用、預設場地
+4. `取得打球日`: 確認是否有當週活動頁面
+5. `Get People Next`: 取得人員名單以解析請假者姓名
+6. `下次打球 v2`: 組合推播訊息文字（計算缺席、零打名額）
+7. `push Dobby` / `push 球來就打`: 發送 LINE Push Message
+
+---
 
 ### Code Constants (Default Values)
 - **Default Courts**: `2` (metadata node)

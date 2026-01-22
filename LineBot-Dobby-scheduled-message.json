@@ -1,0 +1,524 @@
+{
+  "name": "LineBot-Dobby-scheduled-message",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "29debcb9-1316-492a-b7bc-d1d97ca80c75",
+      "name": "Manual Trigger (Push Test)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "prod-env-marker",
+              "name": "environment",
+              "value": "production",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "49f57d0b-2d51-44c8-9c6f-f21afe68b1a1",
+      "name": "Set Environment (Production)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "test-env-marker",
+              "name": "environment",
+              "value": "test",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6cf19715-1eda-4c8c-93bc-35559772fe52",
+      "name": "Set Environment (Test)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"to\": \"C9fb61df21d9118e77d6e3065716fc08a\", \"messages\": $json.messages } }}",
+        "options": {}
+      },
+      "id": "ca93e6b4-4f0f-40fc-af53-149aa0aaf766",
+      "name": "push Dobby",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2464,
+        112
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AXXATrQhz9xpUGTR",
+          "name": "Line Dobby"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"to\": \"U2a0a2c5054c4fa12b78a1d059411e39c\", \"messages\": $json.messages } }}",
+        "options": {}
+      },
+      "id": "04007540-6696-462d-9c7f-3e220e8baafe",
+      "name": "push 球來就打 (lab)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2464,
+        -80
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EeeK58MFzM1kWVEe",
+          "name": "Line 球來就打"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "push-env-check",
+              "leftValue": "={{ $json.environment }}",
+              "rightValue": "test",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cdc6fbec-6f0d-498b-92f9-bb982a6db301",
+      "name": "判斷 Push 環境",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        16
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "5356f3ce-39b7-4562-90b0-587aabc660d7",
+      "name": "Merge Triggers",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        672,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const messages = $input.all().map(item => item.json)\n\n// 從 metadata (Push) 獲取 environment\nconst metadataNode = $(\"metadata (Push)\").first();\nconst environment = metadataNode?.json?.environment || \"production\";\n\nreturn {\n  messages,\n  environment\n}"
+      },
+      "id": "018d10ff-29b8-4640-8732-2bde4da1303f",
+      "name": "組起來 (Push)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const quarterInfo = $('取得該季資訊 (Push)').first().json;\nconst metadata = $('metadata (Push)').first().json;\n\n// Robust property getters\nconst getNumber = (item, key) => (item.properties?.[key]?.number || item[`property_${key.toLowerCase()}`] || 0);\nconst getFormulaNumber = (item, key) => (item.properties?.[key]?.formula?.number || item[`property_${key.toLowerCase()}`] || 0);\nconst getName = (item) => (item.properties?.['Name']?.title?.[0]?.plain_text || item.property_name || item.name);\nconst getDate = (item) => (item.properties?.['時間']?.date?.start || (typeof item.property_時間 === 'string' ? item.property_時間 : item.property_時間?.start));\n\n// 從不同來源彙整資訊\nconst quarterData = {\n  fee: getNumber(quarterInfo, '零打費用') || metadata.price,\n  memberCount: getFormulaNumber(quarterInfo, '報名人數') || 0,\n  defaultCourts: metadata.courts // Fallback to metadata if not in Quarter DB\n};\n\n// 取得當前節點 (Event) 的資料\nconst targetDate = metadata.nextSaturdayDateText;\nconst allEvents = $('取得打球日 (Push)').all().map(item => item.json);\n\nconst eventPage = allEvents.find(page => {\n  const startTime = getDate(page);\n  return startTime && startTime.startsWith(targetDate);\n});\n\nif (!eventPage) {\n  return [\n    {\n      \"type\": \"text\",\n      \"text\": `⚠️ 找不到 ${targetDate} 的打球日活動。\\n請確認 Notion 行事曆是否已建立該日期的頁面。`\n    }\n  ];\n}\n\n// Get People Map\nconst peopleData = $('Get People Next (Push)').all().map(item => item.json);\nconst peopleMap = new Map();\npeopleData.forEach(p => peopleMap.set(p.id, p));\n\nconst eventData = {\n  type: eventPage.properties?.['類型']?.select?.name || eventPage.property_類型,\n  timeStart: getDate(eventPage),\n  courtOverride: getNumber(eventPage, '場地數'),\n  absenteesRelations: eventPage.properties?.['請假人']?.relation || eventPage.property_請假人 || [],\n  absenteesCount: (eventPage.properties?.['請假人']?.relation?.length ?? eventPage.property_請假人?.length ?? 0)\n};\n\n// 1. 檢查是否暫停\nif (eventData.type && eventData.type.includes('暫停')) {\n  return [\n    {\n      \"type\": \"text\",\n      \"text\": `📅 ${targetDate}\\n\\n🛑 本週打球暫停 (Suspended)\\n休息是為了走更長遠的路！`\n    }\n  ];\n}\n\n// 2. 計算邏輯\n// 場地數：優先使用 Event Override，否則使用 Quarter Default (or Metadata default)\nconst finalCourts = eventData.courtOverride || quarterData.defaultCourts;\nconst courtsDensity = 7; // 每面場地 7 人\n\n// 總請假人數：Event 紀錄的請假人 + 指令參數額外扣除的 (metadata.offCounts)\nconst manualOffCounts = Number(metadata.offCounts) || 0;\nconst totalAbsentees = eventData.absenteesCount + manualOffCounts;\n\n// Resolve Names\nconst absenteeNames = eventData.absenteesRelations.map(r => {\n    const id = r.id || r;\n    const person = peopleMap.get(id);\n    return getName(person || {});\n}).filter(n => n);\n\nconst leaveString = absenteeNames.length > 0 ? `請假：${absenteeNames.join(', ')}` : `請假：無`;\n\n// 應到人數 (季租 - 請假)\nconst expectedMembers = quarterData.memberCount - totalAbsentees;\n\n// 零打名額\nconst totalSlots = finalCourts * courtsDensity;\nconst availableSlots = Math.max(0, totalSlots - expectedMembers);\n\n// 3. 格式化輸出\nconst dateStr = eventData.timeStart ? eventData.timeStart.split('T')[0] : targetDate;\n\nfunction generateNumberedListString(number) {\n  if (number <= 0) return '(無名額)';\n  const lines = [];\n  for (let i = 1; i <= number; i++) {\n    lines.push(`${i}.`);\n  }\n  return lines.join('\\n');\n}\n\nreturn [\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${dateStr} 不能到請喊聲`,\n      leaveString,\n      `場地：${finalCourts} 面`,\n      `應到：${expectedMembers} 人`,\n      `零打名額：${availableSlots}人 $${quarterData.fee}/人`\n    ].join('\\n')\n  },\n  {\n    \"type\":\"text\",\n    \"text\":[\n      `${dateStr}`,\n      `零打名額 ${availableSlots} 人 | $${quarterData.fee}/人`, \n      `${generateNumberedListString(availableSlots)}`\n    ].join('\\n')\n  }\n];"
+      },
+      "id": "083e0ca3-669e-43ef-b4eb-8662a170efc6",
+      "name": "下次打球 v2 (Push)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        16
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "f8471a06-0638-43a7-92bb-c463f053e123",
+      "name": "Merge (Push)",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "252f388d-4ac7-49a4-82ae-a7f18044f701",
+          "mode": "list",
+          "cachedResultName": "人員清單",
+          "cachedResultUrl": "https://www.notion.so/252f388d4ac749a482aea7f18044f701"
+        },
+        "simple": false,
+        "filterType": "json",
+        "filterJson": "{}",
+        "options": {}
+      },
+      "id": "35a2eaf6-f340-4110-af7f-d214739df452",
+      "name": "Get People Next (Push)",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        -80
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "RRcVukfrFBXC9j01",
+          "name": "Notion account (修 s1027401)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "0fd76b77-9f07-4aa3-a3c9-12ba18dbe32e",
+          "mode": "list",
+          "cachedResultName": "行事曆",
+          "cachedResultUrl": "https://www.notion.so/0fd76b779f074aa3a3c912ba18dbe32e"
+        },
+        "simple": false,
+        "filterType": "json",
+        "filterJson": "={{ JSON.stringify({ and: [{ property: '時間', date: { equals: $json.nextSaturdayDateText } }] }) }}",
+        "options": {}
+      },
+      "id": "4a601ff9-74f1-4429-8400-510b5fd37ba7",
+      "name": "取得打球日 (Push)",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        112
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "RRcVukfrFBXC9j01",
+          "name": "Notion account (修 s1027401)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "7deede34-579d-4c77-b79b-20b9f4f000e7",
+          "mode": "list",
+          "cachedResultName": "季租承租紀錄",
+          "cachedResultUrl": "https://www.notion.so/7deede34579d4c77b79b20b9f4f000e7"
+        },
+        "simple": false,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "季租時段|title",
+              "condition": "equals",
+              "titleValue": "={{ $json.nextSaturdayQuarter }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "abd8dff2-cedf-4629-b225-a5a90ec4f28a",
+      "name": "取得該季資訊 (Push)",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        -80
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "RRcVukfrFBXC9j01",
+          "name": "Notion account (修 s1027401)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "function getNextSaturday () {\n  const now = DateTime.now();\n  const currentWeekday = now.weekday;\n  const daysUntilSaturday = ((6 - currentWeekday + 7) % 7) || 7;\n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter;\n  return `${year}-Q${quarter}`;\n}\n\nfunction getNextSaturdayDateText () {\n  const nextSaturday = getNextSaturday()\n  return nextSaturday.toFormat('yyyy-MM-dd')\n}\n\nconst DEFAULT_OFF_COUNTS = 0\nconst DEFAULT_COURT = 2\nconst DEFAULT_PRICE = 170\n\n// 從上游獲取 environment\nconst environment = $json.environment || \"production\";\n\nreturn {\n  nextSaturdayQuarter: getNextSaturdayQuarter(),\n  nextSaturdayDateText: getNextSaturdayDateText(),\n  offCounts: DEFAULT_OFF_COUNTS,\n  courts: DEFAULT_COURT,\n  price: DEFAULT_PRICE,\n  environment: environment\n}"
+      },
+      "id": "80449791-bdbf-46b3-9c62-238266f9cd91",
+      "name": "metadata (Push)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 21
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        -80
+      ],
+      "id": "668d566d-92d3-4bd7-a9fa-dd120c997860",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger (Push Test)": {
+      "main": [
+        [
+          {
+            "node": "Set Environment (Test)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Environment (Production)": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Environment (Test)": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "判斷 Push 環境": {
+      "main": [
+        [
+          {
+            "node": "push 球來就打 (lab)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "push Dobby",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Triggers": {
+      "main": [
+        [
+          {
+            "node": "metadata (Push)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "組起來 (Push)": {
+      "main": [
+        [
+          {
+            "node": "判斷 Push 環境",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "下次打球 v2 (Push)": {
+      "main": [
+        [
+          {
+            "node": "組起來 (Push)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge (Push)": {
+      "main": [
+        [
+          {
+            "node": "下次打球 v2 (Push)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get People Next (Push)": {
+      "main": [
+        [
+          {
+            "node": "Merge (Push)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "取得打球日 (Push)": {
+      "main": [
+        [
+          {
+            "node": "Merge (Push)",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "取得該季資訊 (Push)": {
+      "main": [
+        [
+          {
+            "node": "Get People Next (Push)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "metadata (Push)": {
+      "main": [
+        [
+          {
+            "node": "取得打球日 (Push)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "取得該季資訊 (Push)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Environment (Production)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "52da330c-92bd-4c3a-98d1-b4a153495e51",
+  "meta": {
+    "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
+  },
+  "id": "MToJHnVEMzGAJYrvLHioU",
+  "tags": [
+    {
+      "updatedAt": "2025-04-15T04:50:25.893Z",
+      "createdAt": "2025-04-15T04:50:25.893Z",
+      "id": "0i74kYvNo5LJ26IU",
+      "name": "bot"
+    },
+    {
+      "updatedAt": "2026-01-18T05:24:00.232Z",
+      "createdAt": "2026-01-18T05:24:00.232Z",
+      "id": "7Ke8MqCOSwz5NZgC",
+      "name": "notion"
+    },
+    {
+      "updatedAt": "2025-04-15T05:32:41.173Z",
+      "createdAt": "2025-04-15T05:32:41.173Z",
+      "id": "aNPgZxmGaxoKb7As",
+      "name": "line"
+    },
+    {
+      "updatedAt": "2026-01-18T05:24:07.460Z",
+      "createdAt": "2026-01-18T05:24:07.460Z",
+      "id": "bJJAP51qCdrdLEwN",
+      "name": "line bot"
+    }
+  ]
+}

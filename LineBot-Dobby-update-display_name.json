@@ -1,0 +1,428 @@
+{
+  "name": "LineBot-Dobby-update-display_name",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1827a1b3-b314-42de-95ea-a476a66040d8",
+      "name": "Manual Trigger (Push Test)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e44dbf2-e21c-80d1-af81-c3b61579b3bb",
+          "mode": "list",
+          "cachedResultName": "USERS",
+          "cachedResultUrl": "https://www.notion.so/2e44dbf2e21c80d1af81c3b61579b3bb"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "groups|multi_select",
+              "condition": "is_not_empty"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b607e483-28c9-4c6f-8c0f-fee271e61a34",
+      "name": "取得可更新的使用者",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        -128
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "notionApi": {
+          "id": "RRcVukfrFBXC9j01",
+          "name": "Notion account (修 s1027401)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Custom Name|rich_text",
+              "textContent": "={{ $json.display_name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "70eab2d7-9580-446d-9a07-ce77e3bf7dcb",
+      "name": "更新使用者 display_name",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1648,
+        -128
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "RRcVukfrFBXC9j01",
+          "name": "Notion account (修 s1027401)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const userData = item.json;\n  \n  // 提取使用者資訊（從 Notion 簡化格式）\n  const userId = userData.property_user_id;\n  const groups = userData.property_groups || [];\n  const notionPageId = userData.id;\n  \n  // 檢查是否有 groups\n  if (!userId || groups.length === 0) {\n    continue;\n  }\n  \n  // 取得第一個 group ID\n  const groupId = groups[0];\n  \n  results.push({\n    json: {\n      user_id: userId,\n      group_id: groupId,\n      notion_page_id: notionPageId,\n      original_data: userData\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "5ff7a6f4-92a9-49af-8b6f-492ad1c5616b",
+      "name": "準備 API 資料",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.line.me/v2/bot/group/{{ $json.group_id }}/member/{{ $json.user_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "e761e8c7-7b03-4d3e-9429-19af2a9f4f29",
+      "name": "呼叫 LINE API (Dobby)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        528,
+        -128
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AXXATrQhz9xpUGTR",
+          "name": "Line Dobby"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// 取得所有 HTTP 回應和原始資料\nconst items = $input.all();\nconst originalItems = $('準備 API 資料').all();\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const currentData = items[i].json;\n  const originalData = originalItems[i].json;\n  \n  // 如果有 error，保留原始資料結構以便重試\n  if (currentData.error) {\n    results.push({\n      json: {\n        user_id: originalData.user_id,\n        group_id: originalData.group_id,\n        notion_page_id: originalData.notion_page_id,\n        error: currentData.error\n      }\n    });\n  } else {\n    // 如果成功，直接輸出 Notion 更新格式\n    results.push({\n      json: {\n        id: originalData.notion_page_id,\n        display_name: currentData.displayName,\n        user_id: originalData.user_id\n      }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "id": "e96a586c-408f-4624-9ac1-39e41f7c21e2",
+      "name": "合併 Dobby API 結果",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "success-condition",
+              "leftValue": "={{ $json.display_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c2d9badd-699b-4b09-ba3a-097d8f63867e",
+      "name": "檢查 Dobby API 是否成功",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.line.me/v2/bot/group/{{ $json.group_id }}/member/{{ $json.user_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "494baf16-3ab5-4b3f-95b5-efb43c06a4eb",
+      "name": "呼叫 LINE API (球來就打)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        -48
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EeeK58MFzM1kWVEe",
+          "name": "Line 球來就打"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// 取得所有 HTTP 回應和原始資料（從檢查 Dobby API 是否成功節點的 False 分支）\nconst items = $input.all();\nconst originalItems = $('檢查 Dobby API 是否成功', 1).all(); // 1 = False 分支\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const currentData = items[i].json;\n  const originalData = originalItems[i].json;\n  \n  // 如果還是失敗，跳過（不更新）\n  if (currentData.error) {\n    continue;\n  }\n  \n  // 如果成功，直接輸出 Notion 更新格式\n  results.push({\n    json: {\n      id: originalData.notion_page_id,\n      display_name: currentData.displayName,\n      user_id: originalData.user_id\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "692f80e5-f9a6-4153-aaa1-6e7489591478",
+      "name": "合併球來就打 API 結果",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "user_id"
+            },
+            {
+              "name": "group_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -144,
+        112
+      ],
+      "id": "22a9a6d3-57a8-4bc2-9a7b-4fa67e3e95a0",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e44dbf2-e21c-80d1-af81-c3b61579b3bb",
+          "mode": "list",
+          "cachedResultName": "USERS",
+          "cachedResultUrl": "https://www.notion.so/2e44dbf2e21c80d1af81c3b61579b3bb"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "key": "groups|multi_select",
+              "condition": "contains",
+              "multiSelectValue": "={{ $json.group_id }}"
+            },
+            {
+              "key": "user_id|title",
+              "condition": "equals",
+              "titleValue": "={{ $json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8171c624-77da-410e-a05c-1259026727c7",
+      "name": "取得可更新的使用者1",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        112
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "notionApi": {
+          "id": "RRcVukfrFBXC9j01",
+          "name": "Notion account (修 s1027401)"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "user_id": "U2a0a2c5054c4fa12b78a1d059411e39c",
+          "group_id": "Ca18e766e2730654fc1ca2573a14e01e2"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Manual Trigger (Push Test)": {
+      "main": [
+        [
+          {
+            "node": "取得可更新的使用者",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "取得可更新的使用者": {
+      "main": [
+        [
+          {
+            "node": "準備 API 資料",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "準備 API 資料": {
+      "main": [
+        [
+          {
+            "node": "呼叫 LINE API (Dobby)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "呼叫 LINE API (Dobby)": {
+      "main": [
+        [
+          {
+            "node": "合併 Dobby API 結果",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "合併 Dobby API 結果": {
+      "main": [
+        [
+          {
+            "node": "檢查 Dobby API 是否成功",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "檢查 Dobby API 是否成功": {
+      "main": [
+        [
+          {
+            "node": "更新使用者 display_name",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "呼叫 LINE API (球來就打)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "呼叫 LINE API (球來就打)": {
+      "main": [
+        [
+          {
+            "node": "合併球來就打 API 結果",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "合併球來就打 API 結果": {
+      "main": [
+        [
+          {
+            "node": "更新使用者 display_name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "取得可更新的使用者1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "取得可更新的使用者1": {
+      "main": [
+        [
+          {
+            "node": "準備 API 資料",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "ee17cceb-287f-40f1-b3c4-4d32b45bc5a9",
+  "meta": {
+    "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
+  },
+  "id": "-CIVmb7fG9yIL8IhBGbEG",
+  "tags": [
+    {
+      "updatedAt": "2026-01-18T05:24:00.232Z",
+      "createdAt": "2026-01-18T05:24:00.232Z",
+      "id": "7Ke8MqCOSwz5NZgC",
+      "name": "notion"
+    },
+    {
+      "updatedAt": "2026-01-18T05:24:07.460Z",
+      "createdAt": "2026-01-18T05:24:07.460Z",
+      "id": "bJJAP51qCdrdLEwN",
+      "name": "line bot"
+    }
+  ]
+}
