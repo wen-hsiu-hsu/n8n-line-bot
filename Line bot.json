@@ -1256,11 +1256,12 @@
         "operation": "getAll",
         "databaseId": {
           "__rl": true,
-          "value": "2e34dbf2-e21c-8047-8ac5-fccfc5c02729",
+          "value": "2f14dbf2-e21c-80c4-824f-dda80a04e6b3",
           "mode": "list",
           "cachedResultName": "TEXT_REPLY",
-          "cachedResultUrl": "https://www.notion.so/2e34dbf2e21c80478ac5fccfc5c02729"
+          "cachedResultUrl": "https://www.notion.so/2f14dbf2e21c80c4824fdda80a04e6b3"
         },
+        "returnAll": true,
         "options": {}
       },
       "id": "c21c0896-d4f3-4b9d-bcba-5b7f2887d68c",
@@ -3505,17 +3506,17 @@
     "timezone": "Asia/Taipei",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "d44db997-90a9-4ca8-8341-89c7d091daae",
+  "versionId": "82e3596c-cfd6-4720-84a1-c2465fa27497",
   "meta": {
     "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
   },
   "id": "z-kTyrtVcRCn1Qs2zypfX",
   "tags": [
     {
-      "updatedAt": "2026-01-18T05:24:00.232Z",
-      "createdAt": "2026-01-18T05:24:00.232Z",
-      "id": "7Ke8MqCOSwz5NZgC",
-      "name": "notion"
+      "updatedAt": "2025-04-15T04:50:25.893Z",
+      "createdAt": "2025-04-15T04:50:25.893Z",
+      "id": "0i74kYvNo5LJ26IU",
+      "name": "bot"
     },
     {
       "updatedAt": "2025-04-15T05:32:41.173Z",
@@ -3524,10 +3525,10 @@
       "name": "line"
     },
     {
-      "updatedAt": "2025-04-15T04:50:25.893Z",
-      "createdAt": "2025-04-15T04:50:25.893Z",
-      "id": "0i74kYvNo5LJ26IU",
-      "name": "bot"
+      "updatedAt": "2026-01-18T05:24:00.232Z",
+      "createdAt": "2026-01-18T05:24:00.232Z",
+      "id": "7Ke8MqCOSwz5NZgC",
+      "name": "notion"
     }
   ]
 }
