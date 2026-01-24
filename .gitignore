@@ -1,5 +1,6 @@
 # n8n backups and samples
 Line bot.backup.json
+Line bot.backup.*.json
 input.json
 output.json
 *.backup.json
