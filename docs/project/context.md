@@ -48,7 +48,11 @@
 
 ### 5. TEXT_REPLY (自動回覆)
 - **用途**: 根據關鍵字觸發自動回覆訊息。
+- **資料來源**: n8n Data Table (自 2026-01-24 起，從 Notion Database 遷移至 Data Table 以提升效能)
+  - Data Table ID: `QzAIeJGMCaAgutGN`
+  - 欄位結構: `message` (關鍵字), `reply` (回覆內容)
 - **觸發邏輯**: 字串包含匹配（**區分大小寫**，`Line bot.json` 中直接使用 `includes()` 且未轉小寫）
+- **效能優化**: 使用 Data Table 取代 Notion API 呼叫，減少回應延遲
 
 ### 6. USERS (使用者資料庫)
 - **用途**: 追蹤所有 LINE 互動使用者，管理權限（`is_admin`）與累積訊息量。
@@ -177,7 +181,11 @@
 2. `Extract Admin For Auto Reply` (Code): 提取 `is_admin` 並合併至事件
 3. `Skip Auto Reply If Admin` (If): 檢查 `$json._is_admin === true` AND webhook URL 不包含 "webhook-test"
    - TRUE → 流程結束（管理員不觸發自動回覆）
-   - FALSE → 繼續執行 `取得 auto reply message`（一般使用者觸發自動回覆，或測試 webhook）
+   - FALSE → 繼續執行 `Get auto reply rows` (Data Table 節點，取代過去的 Notion Database 查詢)
+4. `Get auto reply rows` (Data Table): 從 n8n Data Table 取得所有自動回覆規則
+   - 使用 Data Table 取代 Notion Database，避免外部 API 呼叫
+   - 資料結構簡化為 `{ message, reply }`，無需複雜的巢狀屬性存取
+5. `Auto Reply Message` (Code): 檢查使用者訊息是否包含任一關鍵字並組合回覆
 
 **Edge Cases:**
 - 若使用者不存在於資料庫：視為 `is_admin = false`（保守預設值）
