@@ -202,9 +202,17 @@
           "cachedResultName": "人員清單",
           "cachedResultUrl": "https://www.notion.so/252f388d4ac749a482aea7f18044f701"
         },
-        "simple": false,
-        "filterType": "json",
-        "filterJson": "{}",
+        "returnAll": true,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "報名季度|relation",
+              "condition": "contains",
+              "relationValue": "={{ $json.id }}"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "35a2eaf6-f340-4110-af7f-d214739df452",
@@ -295,7 +303,7 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "function getNextSaturday () {\n  const now = DateTime.now();\n  const currentWeekday = now.weekday;\n  const daysUntilSaturday = ((6 - currentWeekday + 7) % 7) || 7;\n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter;\n  return `${year}-Q${quarter}`;\n}\n\nfunction getNextSaturdayDateText () {\n  const nextSaturday = getNextSaturday()\n  return nextSaturday.toFormat('yyyy-MM-dd')\n}\n\nconst DEFAULT_OFF_COUNTS = 0\nconst DEFAULT_COURT = 2\nconst DEFAULT_PRICE = 170\n\n// 從上游獲取 environment\nconst environment = $json.environment || \"production\";\n\nreturn {\n  nextSaturdayQuarter: getNextSaturdayQuarter(),\n  nextSaturdayDateText: getNextSaturdayDateText(),\n  offCounts: DEFAULT_OFF_COUNTS,\n  courts: DEFAULT_COURT,\n  price: DEFAULT_PRICE,\n  environment: environment\n}"
+        "jsCode": "function getNextSaturday () {\n  const now = DateTime.now(); \n  const currentWeekday = now.weekday; \n  const daysUntilSaturday = (6 - currentWeekday + 7) % 7; \n  const nextSaturday = now.plus({ days: daysUntilSaturday });\n  return nextSaturday\n}\n\nfunction getNextSaturdayQuarter() {\n  const nextSaturday = getNextSaturday()\n  const year = nextSaturday.year;\n  const quarter = nextSaturday.quarter;\n  return `${year}-Q${quarter}`;\n}\n\nfunction getNextSaturdayDateText () {\n  const nextSaturday = getNextSaturday()\n  return nextSaturday.toFormat('yyyy-MM-dd')\n}\n\nconst DEFAULT_OFF_COUNTS = 0\nconst DEFAULT_COURT = 2\nconst DEFAULT_PRICE = 170\n\n// 從上游獲取 environment\nconst environment = $json.environment || \"production\";\n\nreturn {\n  nextSaturdayQuarter: getNextSaturdayQuarter(),\n  nextSaturdayDateText: getNextSaturdayDateText(),\n  offCounts: DEFAULT_OFF_COUNTS,\n  courts: DEFAULT_COURT,\n  price: DEFAULT_PRICE,\n  environment: environment\n}"
       },
       "id": "80449791-bdbf-46b3-9c62-238266f9cd91",
       "name": "metadata (Push)",
@@ -312,7 +320,7 @@
           "interval": [
             {
               "field": "weeks",
-              "triggerAtHour": 21
+              "triggerAtHour": 9
             }
           ]
         }
@@ -371,13 +379,7 @@
             "index": 0
           }
         ],
-        [
-          {
-            "node": "push Dobby",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Merge Triggers": {
@@ -490,7 +492,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "52da330c-92bd-4c3a-98d1-b4a153495e51",
+  "versionId": "050c4123-d6fa-4d07-867e-199362f54cb1",
   "meta": {
     "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
   },

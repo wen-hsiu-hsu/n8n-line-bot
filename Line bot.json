@@ -1607,7 +1607,6 @@
           "cachedResultName": "人員清單",
           "cachedResultUrl": "https://www.notion.so/252f388d4ac749a482aea7f18044f701"
         },
-        "simple": false,
         "filterType": "manual",
         "filters": {
           "conditions": [
@@ -3422,7 +3421,7 @@
     "timezone": "Asia/Taipei",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "b223eaa3-f46d-4965-8c22-8292c0746443",
+  "versionId": "34b40ae5-3ad9-4eaf-9ba0-541e190872b6",
   "meta": {
     "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
   },
