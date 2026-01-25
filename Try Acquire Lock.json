@@ -1,0 +1,385 @@
+{
+  "name": "Try Acquire Lock",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $json.lockKey }}",
+        "value": "={{ $json.executionId }}",
+        "keyType": "string",
+        "expire": true,
+        "ttl": 20,
+        "setMode": "nx"
+      },
+      "type": "@codingfrog/n8n-nodes-redis-enhanced.redisEnhanced",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        -64
+      ],
+      "id": "029957d3-1919-438e-a6d3-0d8a85f90247",
+      "name": "Redis Enhanced",
+      "credentials": {
+        "redis": {
+          "id": "X4R4VyGhaniKgouE",
+          "name": "Redis account (n8n)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json.lockKey }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        -64
+      ],
+      "id": "0d7892a2-614c-4592-9266-1dada2df943e",
+      "name": "Verify Lock Acquired",
+      "credentials": {
+        "redis": {
+          "id": "X4R4VyGhaniKgouE",
+          "name": "Redis account (n8n)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 從 Store Input Data 節點讀取原始資料\nconst originalData = $('Store Input Data').first().json;\nconst redisResponse = $input.first().json;\nconst expectedExecutionId = String(originalData.executionId);\n\n// n8n Redis GET 返回格式：{ propertyName: \"value\" }\nlet lockValue = null;\nif (redisResponse && typeof redisResponse === 'object') {\n  lockValue = redisResponse.propertyName || redisResponse.value || null;\n} else if (typeof redisResponse === 'string') {\n  lockValue = redisResponse;\n}\n\nlockValue = lockValue ? String(lockValue) : null;\n\n// 比對是否為當前 execution 的鎖\nconst lockAcquired = (lockValue === expectedExecutionId);\n\nreturn {\n  lockAcquired,\n  lockValue,\n  expectedExecutionId,\n  ...originalData\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -64
+      ],
+      "id": "2a888f95-8ebb-4941-9ba3-3b0c6a74d5a6",
+      "name": "Prepare Lock Check"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f5d6e7f8-8g9h-0i1j-2k3l-4m5n6o7p8q9r",
+              "leftValue": "={{ $json.lockAcquired }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -80,
+        -64
+      ],
+      "id": "3d3a3815-07fc-455c-a81f-e9e16c2164fe",
+      "name": "Check Lock Success"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 成功獲得鎖，返回所有原始資料\nconst { lockAcquired, lockValue, expectedExecutionId, attempt, maxRetries, ...cleanData } = $json;\nreturn {\n  success: true,\n  ...cleanData\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        -160
+      ],
+      "id": "8ec8d42b-8ed3-4857-a5ca-57718db552e4",
+      "name": "Return Success"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "i8g9h0i1-1j2k-3l4m-5n6o-7p8q9r0s1t2u",
+              "leftValue": "={{ $json.attempt }}",
+              "rightValue": "={{ $json.maxRetries }}",
+              "operator": {
+                "type": "number",
+                "operation": "smaller"
+              }
+            },
+            {
+              "id": "0b02dd89-4511-4377-841b-861b08220e10",
+              "leftValue": "={{ $json.attempt }}",
+              "rightValue": "={{ $json.maxRetries }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        32
+      ],
+      "id": "974c6d5c-7f94-44ad-85b3-b55f35e6eb40",
+      "name": "Check Retry Limit"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Y9HQ35i_iEtQwhFEguGmy",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Y9HQ35i_iEtQwhFEguGmy",
+          "cachedResultName": "Try Acquire Lock"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        -64
+      ],
+      "id": "2d23d22c-603d-44f8-9c0d-6caffa5a3261",
+      "name": "Retry (Recursive Call)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 達到重試上限，返回失敗\nreturn {\n  success: false,\n  error: 'LOCK_TIMEOUT',\n  errorMessage: '系統繁忙，請稍後再試 🔒\\n\\n有其他人正在報名或請假，請等待幾秒後再次嘗試。',\n  replyToken: $json.replyToken,\n  source: $json.source,\n  message: $json.message\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        128
+      ],
+      "id": "b9081d82-0c52-42fa-bc83-7a0c4bff92f8",
+      "name": "Return Failure"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 保存所有輸入資料，供後續節點使用\nreturn $input.first().json;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        -64
+      ],
+      "id": "b3d5a875-0900-4273-9ebd-ad8d86966f2e",
+      "name": "Store Input Data"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1200,
+        -64
+      ],
+      "id": "37db404b-c886-40d6-afe5-7c7b84f708cf",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  ...$input.first().json,\n  attempt: $input.first().json.attempt + 1\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        -64
+      ],
+      "id": "f447b6f1-87c0-45b1-83a0-00f68ff4e924",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        -64
+      ],
+      "id": "583df994-b678-4a57-a898-1adabfacb74c",
+      "name": "Wait 5 Seconds",
+      "webhookId": "cfbeae1a-ec32-4b7b-8dbd-4e791ebeeb0d"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "eventPageId": "2e14dbf2-e21c-80ff-96a5-def8dc3b0b93",
+          "lockKey": "notion:event:2e14dbf2-e21c-80ff-96a5-def8dc3b0b93:lock",
+          "executionId": "2855",
+          "nextSaturdayDateText": "2026-01-31",
+          "attempt": 1,
+          "maxRetries": 10
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Redis Enhanced": {
+      "main": [
+        [
+          {
+            "node": "Verify Lock Acquired",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Lock Acquired": {
+      "main": [
+        [
+          {
+            "node": "Prepare Lock Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Lock Check": {
+      "main": [
+        [
+          {
+            "node": "Check Lock Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Lock Success": {
+      "main": [
+        [
+          {
+            "node": "Return Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Retry Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Retry Limit": {
+      "main": [
+        [
+          {
+            "node": "Wait 5 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Input Data": {
+      "main": [
+        [
+          {
+            "node": "Redis Enhanced",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Store Input Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Retry (Recursive Call)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 5 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Taipei",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1
+  },
+  "versionId": "9079626b-f696-4cce-a6dd-68efcc485c51",
+  "meta": {
+    "instanceId": "434c89e639dca69ee85d48434474c04f2299edb82bd25537f48b2f00ff1d4403"
+  },
+  "id": "Y9HQ35i_iEtQwhFEguGmy",
+  "tags": []
+}
