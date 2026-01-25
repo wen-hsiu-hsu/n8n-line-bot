@@ -98,6 +98,28 @@
   - 請假成功後，系統會計算 `Total Capacity - (Season Members - Updated Leave List)`。
   - **零打名額 (Guest Slots)** 會立即增加，供其他人報名。
 - **資料源**: 讀取並更新 Notion 行事曆當週頁面的 `請假人` (Relation) 欄位。
+
+### Registration & Leave Redis Locking (2026-01-25)
+為防止並發報名/請假操作導致 Notion 資料覆蓋，系統使用 **Redis 分散式鎖定機制**。
+
+**鎖定機制**:
+- **鎖定粒度**: Event Page 級別 (`notion:event:{eventPageId}:lock`)
+- **實現方式**: 使用 Community Node `@codingfrog/n8n-nodes-redis-enhanced`
+- **TTL**: 10 秒自動過期（防止死鎖）
+- **行為**: 加鎖失敗時立即回覆「系統繁忙」，用戶需手動重試
+
+**流程概要**:
+```
+Command controller (報名請假)
+  → Extract Event Page ID
+  → Redis Enhanced (SET NX with TTL=10)
+  → Verify Lock & Check
+  ├─ Success → Registration Parser → Update Notion → Release Lock
+  └─ Failed → Reply "系統繁忙"
+```
+
+**詳細文件**: 完整的實現細節、節點配置、測試方法請參考 `docs/n8n/redis-locking.md`
+
 ### Event Handlers
 
 #### 1. User Management (使用者管理)

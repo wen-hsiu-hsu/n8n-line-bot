@@ -17,7 +17,9 @@
 ### 2. n8n 相關 (`docs/n8n/`)
 - **核心概念**: `n8n-concepts.md` (**必讀**，包含 Workflow JSON 結構範例、API 驗證)
 - **常見錯誤**: `common-errors.md` (開發前必讀，包含 Luxon、換行轉義等雷點)
+- **Redis 鎖定**: `redis-locking.md` (報名/請假的分散式鎖定機制，包含 Community Node 設定)
 - **封存資料**: `archive-n8n-docs-repo.md` (原始龐大文件，除非 `concepts.md` 資訊不足，否則**不要讀取**)
+- **使用時機**: 修改報名/請假流程時，必須閱讀 `redis-locking.md` 了解鎖定機制
 
 ### 3. Notion API 相關 (`docs/notion/`)
 - **Database Schema** (JSON 格式，自動產生):
